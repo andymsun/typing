@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TypeFlow - AI Typing Trainer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --accent-color: #00d4aa;
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #606060;
+            --border-color: #333333;
+            --correct-color: var(--accent-color);
+            --incorrect-color: #ff6b6b;
+            --main-font: 'Courier Prime', monospace;
+            --key-unit-width: 2.5rem; /* Base unit for keyboard key width */
+        }
+
+        html, body {
+            height: 100%;
+            width: 100%;
+            overflow: hidden; /* Disable scrolling on the entire page */
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: radial-gradient(ellipse at top, #1a1a1a, #121212);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            height: 100%;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between; /* Pushes content apart */
+            align-items: center;
+        }
+
+        /* --- SETTINGS --- */
+        .settings-area {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 20;
+        }
+
+        .settings-btn {
+            background: none;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            font-size: 1.25rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .settings-btn:hover {
+            color: var(--accent-color);
+            border-color: var(--accent-color);
+            transform: rotate(45deg);
+        }
+        
+        .settings-panel {
+            display: none; 
+            flex-direction: column;
+            gap: 1.25rem;
+            position: absolute;
+            top: 120%;
+            right: 0;
+            background: #1e1e1e;
+            padding: 1.5rem;
+            border-radius: 15px;
+            border: 1px solid var(--border-color);
+            width: 280px;
+            z-index: 10;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        .setting {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .setting input[type="color"] {
+            width: 30px;
+            height: 30px;
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            background: none;
+        }
+
+        .setting input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .setting select {
+            background: #333;
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+            padding: 0.5rem;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 150px;
+        }
+
+        .main-content-wrapper {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 900px;
+        }
+
+        .typing-area {
+            flex-grow: 1; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5rem; /* Reduced gap */
+            width: 100%;
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-top: 2rem;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            height: 40px; 
+        }
+        
+        .stats.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+
+        .stat {
+            background: none;
+            padding: 0;
+            text-align: center;
+            min-width: 80px;
+        }
+
+        .stat-value {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--accent-color);
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        /* --- TEST MODE CONTROLS --- */
+        .test-mode-controls {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-secondary);
+            padding: 0.5rem;
+            border-radius: 8px;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            margin-bottom: 1rem;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .test-mode-controls.hidden {
+            opacity: 0;
+            visibility: hidden;
+        }
+        
+        .mode-group {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .mode-divider {
+            width: 1px;
+            height: 1.5rem;
+            background-color: var(--border-color);
+            margin: 0 0.5rem;
+        }
+
+        .mode-btn {
+            background: none;
+            color: var(--text-secondary);
+            border: none;
+            padding: 0.4rem 0.8rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .mode-btn:hover {
+            color: var(--text-primary);
+            background-color: rgba(255, 255, 255, 0.05);
+            transform: scale(1.05);
+        }
+
+        .mode-btn.active, .toggle-btn.active {
+            color: var(--accent-color);
+        }
+        
+        .mode-btn.active:hover, .toggle-btn.active:hover {
+             background-color: rgba(0, 212, 170, 0.1);
+        }
+
+        .mode-btn svg, .toggle-btn svg {
+            width: 14px;
+            height: 14px;
+            fill: currentColor;
+        }
+
+        .in-test-stats {
+            color: var(--text-muted);
+            font-family: var(--main-font);
+            font-size: 0.9rem;
+            height: 20px;
+            margin-bottom: 0.5rem;
+            transition: opacity 0.3s ease;
+        }
+
+        .in-test-stats.hidden {
+            opacity: 0;
+        }
+
+        .text-display {
+            background: none; /* REMOVED BG AND BORDER */
+            border: none;
+            padding: 0; /* Remove padding to make fade work correctly */
+            width: 100%;
+            font-size: 1.75rem;
+            line-height: 1.8;
+            font-family: var(--main-font);
+            overflow: hidden; 
+            max-height: 160px; /* Approx 3 lines */
+            position: relative;
+        }
+
+        .text-display.static-fade::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to bottom, transparent 20%, var(--bg-primary) 95%);
+            pointer-events: none;
+        }
+
+        .text-content-wrapper {
+            transition: transform 0.2s ease-out;
+        }
+        
+        .text-content-wrapper.static {
+            white-space: normal;
+        }
+        
+        .text-content-wrapper.scroll {
+             white-space: nowrap;
+        }
+
+        .word {
+            display: inline-block;
+        }
+
+        .char {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+
+        .char.correct { color: var(--correct-color); }
+        .char.incorrect { color: var(--incorrect-color); }
+        .char.incorrect.space { background-color: rgba(255, 107, 107, 0.2); border-radius: 3px; }
+        .char.current { background: var(--accent-color); color: var(--bg-primary); border-radius: 3px; }
+        .loading-animation { color: var(--text-secondary); font-style: italic; padding: 1rem; }
+
+        .restart-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-top: 1rem;
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+        }
+        
+        .restart-btn.visible {
+            opacity: 1;
+            visibility: visible;
+            height: auto;
+        }
+        
+        .restart-btn:hover {
+            color: var(--accent-color);
+            transform: rotate(180deg);
+        }
+        
+        .restart-btn svg {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+        
+
+        /* --- KEYBOARD --- */
+        .keyboard {
+            width: 100%;
+            padding: 0.5rem 0 1rem 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+        }
+
+        .keyboard.hidden {
+            opacity: 0;
+            visibility: hidden;
+            height: 0;
+            padding: 0;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .keyboard-row {
+            display: flex;
+            justify-content: center;
+            gap: 0.35rem; 
+            margin-bottom: 0.35rem;
+        }
+
+        .key-gap {
+             width: calc(var(--key-unit-width) * 2);
+             flex-shrink: 0;
+        }
+
+        .key {
+            background: none; border: 1px solid var(--border-color);
+            border-radius: 6px;
+            height: calc(var(--key-unit-width) * 1.1);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+            cursor: default;
+            font-family: var(--main-font);
+            flex-shrink: 0;
+        }
+
+        .key.pressed {
+            background: var(--accent-color); color: var(--bg-primary);
+            border-color: var(--accent-color); transform: scale(0.95);
+        }
+        
+        .u-100 { width: var(--key-unit-width); }
+        .u-125 { width: calc(var(--key-unit-width) * 1.25); }
+        .u-150 { width: calc(var(--key-unit-width) * 1.5); }
+        .u-175 { width: calc(var(--key-unit-width) * 1.75); }
+        .u-200 { width: calc(var(--key-unit-width) * 2.0); }
+        .u-225 { width: calc(var(--key-unit-width) * 2.25); }
+        .u-275 { width: calc(var(--key-unit-width) * 2.75); }
+        .u-625 { width: calc(var(--key-unit-width) * 6.25); }
+        .u-space-split-left { width: calc(var(--key-unit-width) * 2.75); }
+        .u-space-split-right { width: calc(var(--key-unit-width) * 3.5); }
+
+        .key .special-text { font-size: 0.65rem; }
+        
+        @media (max-width: 900px) {
+            :root { --key-unit-width: 1.8rem; }
+            .text-display { font-size: 1.5rem; }
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 0.5rem; }
+             :root { --key-unit-width: 1.25rem; }
+            .settings-area { top: 1rem; right: 1rem; }
+            .stats { gap: 1rem; }
+        }
+         @media (max-width: 480px) {
+             :root { --key-unit-width: 0.8rem; }
+             .key .special-text { display: none; }
+         }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="settings-area">
+            <button class="settings-btn" id="settingsBtn">⚙️</button>
+            <div class="settings-panel" id="settingsPanel">
+                 <div class="setting">
+                    <label for="accentColor">Theme</label>
+                    <input type="color" id="accentColor" value="#00d4aa">
+                </div>
+                 <div class="setting">
+                    <label for="textDisplayMode">Text Display</label>
+                    <select id="textDisplayMode">
+                        <option value="static">Static</option>
+                        <option value="scroll">Scroll</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="keyboardType">Keyboard</label>
+                    <select id="keyboardType">
+                        <option value="hidden">Hidden</option>
+                        <option value="full">Full</option>
+                        <option value="no-numrow">no numrow</option>
+                        <option value="split">Split</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="fontType">Font</label>
+                    <select id="fontType">
+                        <option value="'Courier Prime', monospace">Courier Prime</option>
+                        <option value="'Roboto Mono', monospace">Roboto Mono</option>
+                        <option value="'Source Code Pro', monospace">Source Code Pro</option>
+                    </select>
+                </div>
+                 <div class="setting">
+                    <label for="codingLanguage">Language</label>
+                    <select id="codingLanguage">
+                        <option value="python">Python</option>
+                        <option value="javascript">JavaScript</option>
+                        <option value="java">Java</option>
+                        <option value="c++">C++</option>
+                        <option value="rust">Rust</option>
+                    </select>
+                </div>
+                <div class="setting">
+                    <label for="showStats">Show Stats</label>
+                    <input type="checkbox" id="showStats" checked>
+                </div>
+            </div>
+        </div>
+
+        <div class="main-content-wrapper">
+             <div class="stats hidden" id="stats">
+                <div class="stat">
+                    <div class="stat-value" id="wpm">0</div>
+                    <div class="stat-label">WPM</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="accuracy">100%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="time">0s</div>
+                    <div class="stat-label">Time</div>
+                </div>
+            </div>
+            
+            <div class="test-mode-controls" id="testModeControls">
+                 <div class="mode-group" id="extraOptionsGroup">
+                 </div>
+                 <div class="mode-divider" id="modeDivider"></div>
+                 <div class="mode-group" id="primaryModeGroup">
+                 </div>
+                 <div class="mode-divider" id="modeDivider2"></div>
+                 <div class="mode-group" id="secondaryModeGroup">
+                 </div>
+            </div>
+
+            <div class="typing-area">
+                 <div class="in-test-stats hidden" id="inTestStats"></div>
+                <div class="text-display" id="textDisplayContainer">
+                    <div class="text-content-wrapper" id="textContentWrapper">
+                    </div>
+                </div>
+                 <button class="restart-btn" id="restartBtn">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
+                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+
+        <div class="keyboard" id="keyboard">
+        </div>
+    </div>
+
+    <script>
+        // --- DOM Elements ---
+        const textDisplayContainer = document.getElementById('textDisplayContainer');
+        const textContentWrapper = document.getElementById('textContentWrapper');
+        const statsContainer = document.getElementById('stats');
+        const wpmDisplay = document.getElementById('wpm');
+        const accuracyDisplay = document.getElementById('accuracy');
+        const timeDisplay = document.getElementById('time');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const modeControls = document.getElementById('testModeControls');
+        const extraOptionsGroup = document.getElementById('extraOptionsGroup');
+        const primaryModeGroup = document.getElementById('primaryModeGroup');
+        const secondaryModeGroup = document.getElementById('secondaryModeGroup');
+        const keyboardContainer = document.getElementById('keyboard');
+        const accentColorPicker = document.getElementById('accentColor');
+        const textDisplaySelect = document.getElementById('textDisplayMode');
+        const keyboardTypeSelect = document.getElementById('keyboardType');
+        const fontTypeSelect = document.getElementById('fontType');
+        const codingLanguageSelect = document.getElementById('codingLanguage');
+        const showStatsCheckbox = document.getElementById('showStats');
+        const restartBtn = document.getElementById('restartBtn');
+        const inTestStats = document.getElementById('inTestStats');
+
+        // --- Data & State ---
+        const wordList = ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"];
+        const premadeQuotes = [ "The only way to do great work is to love what you do.", "Success is not final, failure is not fatal: it is the courage to continue that counts.", "Believe you can and you're halfway there.", "The future belongs to those who believe in the beauty of their dreams.", "It does not matter how slowly you go as long as you do not stop.", "Strive not to be a success, but rather to be of value.", "The mind is everything. What you think you become.", "An unexamined life is not worth living.", "Eighty percent of success is showing up.", "The only true wisdom is in knowing you know nothing." ];
+        const premadeCodeSnippets = {
+            python: [ 'def greet(name):\n    print(f"Hello, {name}!")', 'for i in range(5):\n    print(i * i)' ],
+            javascript: [ 'const sum = (a, b) => a + b;', 'document.querySelector("#id");' ],
+            java: [ 'public static void main(String[] args) {\n    System.out.println("Hi");\n}', 'private int count = 0;' ],
+            'c++': [ '#include <iostream>\n\nint main() {\n    std::cout << "C++";\n}', 'vector<int> numbers;' ],
+            rust: [ 'fn main() {\n    println!("Hello, Rust!");\n}', 'let mut a: i32 = 10;' ]
+        };
+        const punctuationList = ['.', ',', ';', "'", '?', '!'];
+        const numberList = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
+
+        const layouts = {
+             full: [[{t:'`',k:'Backquote',s:'u-100'},{t:'1',k:'Digit1',s:'u-100'},{t:'2',k:'Digit2',s:'u-100'},{t:'3',k:'Digit3',s:'u-100'},{t:'4',k:'Digit4',s:'u-100'},{t:'5',k:'Digit5',s:'u-100'},{t:'6',k:'Digit6',s:'u-100'},{t:'7',k:'Digit7',s:'u-100'},{t:'8',k:'Digit8',s:'u-100'},{t:'9',k:'Digit9',s:'u-100'},{t:'0',k:'Digit0',s:'u-100'},{t:'-',k:'Minus',s:'u-100'},{t:'=',k:'Equal',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-200'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
+            '60': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
+             split: [[{t:'Esc',k:'Escape',s:'u-100'},{t:'Q',k:'KeyQ',s:'u-100'},{t:'W',k:'KeyW',s:'u-100'},{t:'E',k:'KeyE',s:'u-100'},{t:'R',k:'KeyR',s:'u-100'},{t:'T',k:'KeyT',s:'u-100'},{t:'gap'},{t:'Y',k:'KeyY',s:'u-100'},{t:'U',k:'KeyU',s:'u-100'},{t:'I',k:'KeyI',s:'u-100'},{t:'O',k:'KeyO',s:'u-100'},{t:'P',k:'KeyP',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-150'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'A',k:'KeyA',s:'u-100'},{t:'S',k:'KeyS',s:'u-100'},{t:'D',k:'KeyD',s:'u-100'},{t:'F',k:'KeyF',s:'u-100'},{t:'G',k:'KeyG',s:'u-100'},{t:'gap'},{t:'H',k:'KeyH',s:'u-100'},{t:'J',k:'KeyJ',s:'u-100'},{t:'K',k:'KeyK',s:'u-100'},{t:'L',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-125'}],[{t:'Shift',k:'ShiftLeft',s:'u-175'},{t:'Z',k:'KeyZ',s:'u-100'},{t:'X',k:'KeyX',s:'u-100'},{t:'C',k:'KeyC',s:'u-100'},{t:'V',k:'KeyV',s:'u-100'},{t:'B',k:'KeyB',s:'u-100'},{t:'gap'},{t:'N',k:'KeyN',s:'u-100'},{t:'M',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-175'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-275'},{t:'gap'},{t:' ',k:'Space',s:'u-275'},{t:'Enter',k:'Enter',s:'u-125'},{t:'Alt',k:'AltRight',s:'u-125'}]]
+        };
+
+        const modeOptions = {
+            time: [15, 30, 60, 120],
+            words: [10, 25, 50, 100],
+            quote: ['random', '✨'],
+            code: ['random', '✨']
+        };
+
+        let keyMap = {};
+        let originalText = '';
+        let typedText = '';
+        let isTestActive = false;
+        let isPaused = false;
+        let isTestComplete = false;
+        let startTime = null;
+        let pauseTime = null;
+        let statTimer = null;
+        let inactivityTimer = null;
+        let generationId = 0;
+        let testConfig = {
+            mode: 'words', 
+            value: 10,
+            includePunctuation: false,
+            includeNumbers: false,
+            showStats: true
+        };
+        
+        // --- Gemini API Function ---
+        async function getAIText(mode) {
+            let prompt = '';
+            if (mode === 'code') {
+                 prompt = `Generate a short, one or two-line code snippet in ${codingLanguageSelect.value} for a typing test. It should be practical and easy to type. Do not include markdown formatting or backticks.`;
+            } else if (mode === 'quote') {
+                prompt = `Generate a random famous quote for a typing test. Do not include author attribution.`
+            }
+
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+            try {
+                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
+                const result = await response.json();
+                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
+                    return result.candidates[0].content.parts[0].text.replace(/```[\w\s]*\n|```/g, '').trim();
+                }
+                return "Error: Could not generate text. Please try again.";
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                return "Error fetching text. Check console for details.";
+            }
+        }
+
+        // --- Core Functions ---
+        const generateWords = (count) => {
+            let words = new Array(count).fill(null).map(() => wordList[Math.floor(Math.random() * wordList.length)]);
+            
+            if(testConfig.includePunctuation) {
+                words = words.map((word, index) => {
+                    if(Math.random() < 0.25 && index < words.length -1) {
+                        return word + punctuationList[Math.floor(Math.random() * punctuationList.length)];
+                    }
+                    return word;
+                });
+            }
+
+            if(testConfig.includeNumbers) {
+                 for (let i = 0; i < count * 0.2; i++) {
+                    const randomIndex = Math.floor(Math.random() * words.length);
+                    const randomNumber = Math.floor(Math.random() * 1000).toString();
+                    words.splice(randomIndex, 0, randomNumber);
+                 }
+            }
+
+            return words.join(' ');
+        };
+
+        const startTest = async () => {
+            const thisGenerationId = ++generationId;
+            await resetTest(thisGenerationId); 
+            if (thisGenerationId !== generationId) return;
+
+            isTestActive = true;
+            const { mode, value } = testConfig;
+            let newText = '';
+
+            if (mode === 'time') {
+                newText = generateWords(100); 
+            } else if (mode === 'words') {
+                 newText = generateWords(value);
+            } else if (mode === 'quote') {
+                if(value === 'random') {
+                    newText = premadeQuotes[Math.floor(Math.random() * premadeQuotes.length)];
+                } else {
+                    textContentWrapper.innerHTML = `<div class="loading-animation">Generating...</div>`;
+                    newText = await getAIText('quote');
+                }
+            } else if (mode === 'code') {
+                if(value === 'random') {
+                    const lang = codingLanguageSelect.value;
+                    const snippetsForLang = premadeCodeSnippets[lang] || premadeCodeSnippets.javascript;
+                    newText = snippetsForLang[Math.floor(Math.random() * snippetsForLang.length)];
+                } else {
+                    textContentWrapper.innerHTML = `<div class="loading-animation">Generating...</div>`;
+                    newText = await getAIText('code');
+                }
+            }
+            
+            if (thisGenerationId !== generationId) return;
+            originalText = newText;
+            renderText();
+        }
+
+        const resetTest = async (callerGenerationId) => {
+            if (callerGenerationId && callerGenerationId !== generationId) {
+                return;
+            }
+            if (statTimer) clearInterval(statTimer);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            isTestActive = false;
+            isPaused = false;
+            isTestComplete = false;
+            originalText = '';
+            typedText = '';
+            startTime = null;
+            statTimer = null;
+            inactivityTimer = null;
+            textContentWrapper.innerHTML = `<div class="word">Select&nbsp;a&nbsp;mode&nbsp;to&nbsp;begin.</div>`;
+            wpmDisplay.textContent = '0';
+            accuracyDisplay.textContent = '100%';
+            timeDisplay.textContent = '0s';
+            statsContainer.classList.add('hidden');
+            inTestStats.classList.add('hidden');
+            modeControls.classList.remove('hidden');
+            restartBtn.classList.remove('visible');
+            updateTextScroll();
+        }
+
+        const renderText = () => {
+            textContentWrapper.innerHTML = '';
+            originalText.split('').forEach((char, index) => {
+                const charEl = document.createElement('span');
+                charEl.className = 'char';
+                charEl.textContent = char;
+
+                if (index < typedText.length) {
+                    const typedChar = typedText[index];
+                    charEl.classList.add(char === typedChar ? 'correct' : 'incorrect');
+                    if (char === ' ' && char !== typedChar) {
+                        charEl.classList.add('space');
+                    }
+                }
+
+                if (index === typedText.length) {
+                    charEl.classList.add('current');
+                }
+
+                if (char === ' ') {
+                    charEl.innerHTML = '&nbsp;';
+                }
+
+                if (textDisplaySelect.value === 'static') {
+                    const lastWord = textContentWrapper.lastChild && textContentWrapper.lastChild.classList.contains('word') ? textContentWrapper.lastChild : null;
+                    if (char !== ' ' && lastWord) {
+                        lastWord.appendChild(charEl);
+                    } else {
+                        const wordEl = document.createElement('div');
+                        wordEl.className = 'word';
+                        wordEl.appendChild(charEl);
+                        textContentWrapper.appendChild(wordEl);
+                    }
+                } else {
+                    textContentWrapper.appendChild(charEl);
+                }
+            });
+            updateTextScroll();
+        };
+
+        const updateTextScroll = () => {
+             const isStatic = textDisplaySelect.value === 'static';
+            textDisplayContainer.classList.toggle('static-fade', isStatic && textContentWrapper.scrollHeight > textDisplayContainer.clientHeight);
+            
+            textContentWrapper.classList.toggle('static', isStatic);
+            textContentWrapper.classList.toggle('scroll', !isStatic);
+
+
+            const currentLetter = textContentWrapper.querySelector('.char.current');
+            if (!currentLetter) {
+                 textContentWrapper.style.transform = 'translateY(0px)';
+                return;
+            };
+
+            if (isStatic) {
+                const containerHeight = textDisplayContainer.clientHeight;
+                const lineHeight = currentLetter.offsetHeight;
+                const scrollOffset = currentLetter.offsetTop;
+                if (scrollOffset > lineHeight) {
+                    textContentWrapper.style.transform = `translateY(-${scrollOffset - lineHeight}px)`;
+                } else {
+                    textContentWrapper.style.transform = 'translateY(0px)';
+                }
+
+            } else { // scroll mode
+                const containerCenter = textDisplayContainer.offsetWidth / 2;
+                const letterOffset = currentLetter.offsetLeft + currentLetter.offsetWidth / 2;
+                const scrollAmount = containerCenter - letterOffset;
+                textContentWrapper.style.transform = `translateX(${scrollAmount}px)`;
+            }
+        }
+        
+        const updateInTestStats = () => {
+             if (!isTestActive || typedText.length === 0) {
+                inTestStats.textContent = '';
+                return;
+            };
+
+            let wordsTyped = 0;
+            const totalWordsInOriginal = originalText.trim().split(/\s+/).length;
+
+            if(typedText.length > 0) {
+                const typedWordsArray = typedText.trim().split(/\s+/);
+                wordsTyped = typedWordsArray.length;
+                if(originalText[typedText.length-1] !== ' ' && typedText.length < originalText.length) {
+                    wordsTyped--;
+                }
+            }
+            
+            if (typedText.length >= originalText.length) {
+                wordsTyped = totalWordsInOriginal;
+            }
+
+            let statsHtml = '';
+            const { mode, value } = testConfig;
+
+            if (mode === 'time') {
+                statsHtml = `words: ${wordsTyped}`;
+            } else if (mode === 'words') {
+                statsHtml = `${wordsTyped} / ${value}`;
+            } else if (mode === 'quote' || mode === 'code') {
+                statsHtml = `${wordsTyped} / ${totalWordsInOriginal}`;
+            }
+            inTestStats.textContent = statsHtml;
+        }
+
+
+        const updateStats = () => {
+            if (!startTime || isPaused) return;
+            const elapsed = (Date.now() - startTime) / 1000;
+            const minutes = elapsed / 60;
+
+            if (testConfig.mode === 'time') {
+                const remaining = testConfig.value - elapsed;
+                timeDisplay.textContent = `${Math.ceil(remaining)}s`;
+                if (remaining <= 0) {
+                    completeTest();
+                }
+            } else {
+                 timeDisplay.textContent = `${Math.round(elapsed)}s`;
+            }
+
+            const correctChars = typedText.split('').filter((char, index) => char === originalText[index]).length;
+            const wpm = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
+            const accuracy = typedText.length > 0 ? Math.round((correctChars / typedText.length) * 100) : 100;
+            wpmDisplay.textContent = wpm;
+            accuracyDisplay.textContent = `${accuracy}%`;
+            updateInTestStats();
+        }
+        
+        const pauseTest = () => {
+            if (!isTestActive || isPaused || isTestComplete) return;
+            isPaused = true;
+            if (statTimer) clearInterval(statTimer);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            modeControls.classList.remove('hidden');
+            restartBtn.classList.add('visible');
+        }
+        
+        const resumeTest = () => {
+            if (!isPaused) return;
+            isPaused = false;
+            inactivityTimer = setTimeout(pauseTest, 5000);
+            modeControls.classList.add('hidden');
+            restartBtn.classList.remove('visible');
+        }
+
+        const handleKeyPress = async (e) => {
+            const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+            
+            if (isPaused) {
+                if(e.key.length === 1 && !e.ctrlKey && !e.metaKey){
+                    resumeTest();
+                } else {
+                    return;
+                }
+            }
+            
+            if (ignoredKeys.includes(e.key)) return;
+            
+            if(isTestComplete) return;
+
+            if (!isTestActive) {
+                if (e.key.length === 1) { 
+                    await startTest();
+                } else {
+                    return;
+                }
+            }
+
+            if (e.key === 'Escape' || e.key === 'Tab') {
+                e.preventDefault();
+                pauseTest();
+                return;
+            }
+            
+            if (typedText.length === 0 && startTime === null && e.key !== 'Backspace') {
+                startTime = Date.now();
+                statTimer = setInterval(updateStats, 100);
+                if (testConfig.showStats) {
+                    statsContainer.classList.remove('hidden');
+                    inTestStats.classList.remove('hidden');
+                }
+                modeControls.classList.add('hidden');
+                restartBtn.classList.remove('visible');
+            }
+
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            inactivityTimer = setTimeout(pauseTest, 5000);
+
+            pressKey(e.code);
+            e.preventDefault();
+            if (e.key === 'Backspace') {
+                typedText = typedText.slice(0, -1);
+            } else if (typedText.length < originalText.length && e.key.length === 1) {
+                typedText += e.key;
+            }
+
+            renderText();
+            updateStats();
+
+            if (testConfig.mode !== 'time' && typedText.length >= originalText.length) {
+                completeTest();
+            }
+        }
+
+        const completeTest = () => {
+            if (statTimer) clearInterval(statTimer);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            isTestActive = false;
+            isTestComplete = true;
+            modeControls.classList.remove('hidden');
+            restartBtn.classList.add('visible');
+        }
+
+        const setMode = (mode, value) => {
+            document.querySelectorAll('#primaryModeGroup .mode-btn').forEach(btn => btn.classList.remove('active'));
+            const primaryBtn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+            if(primaryBtn) primaryBtn.classList.add('active');
+
+            testConfig.mode = mode;
+            updateSecondaryOptions(mode, value);
+            startTest();
+        }
+        
+        const updateSecondaryOptions = (mode, defaultValue) => {
+            secondaryModeGroup.innerHTML = '';
+            const options = modeOptions[mode];
+            if (!options) return;
+
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'mode-btn';
+                btn.dataset.value = option;
+                btn.textContent = option;
+                btn.addEventListener('click', () => {
+                    const val = btn.dataset.value;
+                    testConfig.value = isNaN(parseInt(val)) ? val : parseInt(val);
+                    document.querySelectorAll('#secondaryModeGroup .mode-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    startTest();
+                });
+                secondaryModeGroup.appendChild(btn);
+            });
+
+            const defaultBtn = secondaryModeGroup.querySelector(`[data-value="${defaultValue}"]`) || secondaryModeGroup.firstChild;
+            if(defaultBtn) {
+                defaultBtn.classList.add('active');
+                const val = defaultBtn.dataset.value;
+                testConfig.value = isNaN(parseInt(val)) ? val : parseInt(val);
+            }
+        }
+
+
+        // --- Settings and Keyboard Rendering ---
+        const renderKeyboard = (layoutName) => {
+            const layout = layouts[layoutName] || layouts.full;
+            keyboardContainer.innerHTML = "";
+            keyMap = {};
+            layout.forEach(row => {
+                const rowEl = document.createElement("div");
+                rowEl.className = "keyboard-row";
+                row.forEach(keyData => {
+                    if (keyData.t === 'gap') {
+                        const gapEl = document.createElement('div');
+                        gapEl.className = `key-gap`;
+                        rowEl.appendChild(gapEl);
+                        return;
+                    }
+
+                    const keyEl = document.createElement("div");
+                    keyEl.className = `key ${keyData.s}`;
+                    keyEl.dataset.key = keyData.k;
+                    if (keyData.t.length > 1 && keyData.t !== ' ') {
+                        keyEl.innerHTML = `<span class="special-text">${keyData.t}</span>`;
+                    } else {
+                        keyEl.textContent = keyData.t;
+                    }
+                    rowEl.appendChild(keyEl);
+                    keyMap[keyData.k] = keyEl;
+                });
+                keyboardContainer.appendChild(rowEl);
+            });
+        }
+        const pressKey = (keyCode) => {
+            const keyElement = keyMap[keyCode];
+            if (keyElement) {
+                keyElement.classList.add('pressed');
+                setTimeout(() => keyElement.classList.remove('pressed'), 200);
+            }
+        }
+        const setFont = (font) => document.documentElement.style.setProperty('--main-font', font);
+        
+        const initializeModeSelector = () => {
+            const extraOptions = [
+                {name: 'punctuation', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/><path d="M11 11h2v6h-2zm0-4h2v2h-2z"/></svg>'},
+                {name: 'numbers', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14 10h-2v4h2v-2h2v-2h-2zm-4-4h2v2h-2zm4 8h-4v2h4zM4 4h2v16H4zm14 0h-2v16h2z"/></svg>'}
+            ];
+
+            extraOptions.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'mode-btn toggle-btn';
+                btn.dataset.option = opt.name;
+                btn.innerHTML = `${opt.icon} ${opt.name}`;
+                btn.addEventListener('click', () => {
+                    btn.classList.toggle('active');
+                    testConfig.includePunctuation = document.querySelector('[data-option="punctuation"]').classList.contains('active');
+                    testConfig.includeNumbers = document.querySelector('[data-option="numbers"]').classList.contains('active');
+                    startTest();
+                });
+                extraOptionsGroup.appendChild(btn);
+            });
+
+            const primaryModes = [
+                {name: 'time', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2C6.486 2 2 6.486 2 12s4.486 10 10 10 10-4.486 10-10S17.514 2 12 2zm0 18c-4.411 0-8-3.589-8-8s3.589-8 8-8 8 3.589 8 8-3.589 8-8 8z"/><path d="M13 7h-2v5.414l3.293 3.293 1.414-1.414L13 11.586z"/></svg>'},
+                {name: 'words', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.197 4H4.803c-1.106 0-2 .894-2 2v12c0 1.106.894 2 2 2h14.394c1.106 0 2-.894 2-2V6c0-1.106-.894-2-2-2zm-1.644 14H6.447L12 6.13 17.553 18z"/></svg>'},
+                {name: 'quote', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M11 9h2v8h-2V9zM6 9h2v8H6V9zm12 0h-2v8h2V9z"/></svg>'},
+                {name: 'code', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.293 6.293 2.586 12l5.707 5.707 1.414-1.414L5.414 12l4.293-4.293zm7.414 11.414L21.414 12l-5.707-5.707-1.414 1.414L18.586 12l-4.293 4.293z"/></svg>'}
+            ];
+
+            primaryModeGroup.innerHTML = '';
+            primaryModes.forEach(mode => {
+                 const btn = document.createElement('button');
+                 btn.className = 'mode-btn';
+                 btn.dataset.mode = mode.name;
+                 btn.innerHTML = `${mode.icon} ${mode.name}`;
+                 btn.addEventListener('click', () => setMode(mode.name, modeOptions[mode.name][0]));
+                 primaryModeGroup.appendChild(btn);
+            });
+
+             setMode(testConfig.mode, testConfig.value);
+        }
+
+        // --- Event Listeners ---
+        settingsBtn.addEventListener('click', e => { e.stopPropagation(); settingsPanel.style.display = settingsPanel.style.display === 'flex' ? 'none' : 'flex'; });
+        document.addEventListener('click', e => { if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) settingsPanel.style.display = 'none'; });
+        accentColorPicker.addEventListener('input', e => document.documentElement.style.setProperty('--accent-color', e.target.value));
+        textDisplaySelect.addEventListener('change', () => {
+            renderText();
+            updateTextScroll();
+        });
+        keyboardTypeSelect.addEventListener('change', e => {
+            const layout = e.target.value;
+            keyboardContainer.classList.toggle('hidden', layout === 'hidden');
+            if (layout !== 'hidden') {
+                renderKeyboard(layout);
+            }
+        });
+        fontTypeSelect.addEventListener('change', e => setFont(e.target.value));
+        showStatsCheckbox.addEventListener('change', e => {
+            testConfig.showStats = e.target.checked;
+            if (isTestActive && !isPaused) {
+                statsContainer.classList.toggle('hidden', !testConfig.showStats);
+                inTestStats.classList.toggle('hidden', !testConfig.showStats);
+            }
+        });
+
+        document.addEventListener('keydown', handleKeyPress);
+        restartBtn.addEventListener('click', () => startTest());
+        window.addEventListener('blur', pauseTest);
+        window.addEventListener('resize', () => updateTextScroll());
+
+
+        // --- Initial Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeModeSelector();
+            setFont(fontTypeSelect.value);
+            const currentLayout = keyboardTypeSelect.value;
+            keyboardContainer.classList.toggle('hidden', currentLayout === 'hidden');
+             if (currentLayout !== 'hidden') {
+                renderKeyboard(currentLayout);
+            }
+            showStatsCheckbox.checked = testConfig.showStats;
+            startTest();
+        });
+    </script>
+</body>
+</html>
