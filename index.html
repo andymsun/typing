@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeFlow - AI Typing Trainer</title>
+    <title>TypeFlow - Typing Trainer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
@@ -448,7 +448,7 @@
                     <select id="keyboardType">
                         <option value="hidden">Hidden</option>
                         <option value="full">Full</option>
-                        <option value="no-numrow">no numrow</option>
+                        <option value="no-numrow">No Numrow</option>
                         <option value="split">Split</option>
                     </select>
                 </div>
@@ -473,6 +473,10 @@
                 <div class="setting">
                     <label for="showStats">Show Stats</label>
                     <input type="checkbox" id="showStats" checked>
+                </div>
+                <div class="setting">
+                    <label for="showProgressBar">Progress Bar</label>
+                    <input type="checkbox" id="showProgressBar" checked>
                 </div>
             </div>
         </div>
@@ -545,33 +549,72 @@
         const fontTypeSelect = document.getElementById('fontType');
         const codingLanguageSelect = document.getElementById('codingLanguage');
         const showStatsCheckbox = document.getElementById('showStats');
+        const showProgressBarCheckbox = document.getElementById('showProgressBar');
         const restartBtn = document.getElementById('restartBtn');
         const inTestStats = document.getElementById('inTestStats');
 
         // --- Data & State ---
         const wordList = ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"];
-        const premadeQuotes = [ "The only way to do great work is to love what you do.", "Success is not final, failure is not fatal: it is the courage to continue that counts.", "Believe you can and you're halfway there.", "The future belongs to those who believe in the beauty of their dreams.", "It does not matter how slowly you go as long as you do not stop.", "Strive not to be a success, but rather to be of value.", "The mind is everything. What you think you become.", "An unexamined life is not worth living.", "Eighty percent of success is showing up.", "The only true wisdom is in knowing you know nothing." ];
+        const premadeQuotes = {
+            short: [
+                "The only way to do great work is to love what you do.",
+                "The journey of a thousand miles begins with a single step.",
+                "That which does not kill us makes us stronger.",
+                "Be yourself; everyone else is already taken."
+            ],
+            medium: [
+                "Success is not final, failure is not fatal: it is the courage to continue that counts.",
+                "The future belongs to those who believe in the beauty of their dreams.",
+                "It is our choices, Harry, that show what we truly are, far more than our abilities.",
+                "The two most important days in your life are the day you are born and the day you find out why."
+            ],
+            long: [
+                "In three words I can sum up everything I've learned about life: it goes on.",
+                "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",
+                "I have not failed. I've just found 10,000 ways that won't work. Many of life's failures are people who did not realize how close they were to success when they gave up."
+            ]
+        };
         const premadeCodeSnippets = {
-            python: [ 'def greet(name):\n    print(f"Hello, {name}!")', 'for i in range(5):\n    print(i * i)' ],
-            javascript: [ 'const sum = (a, b) => a + b;', 'document.querySelector("#id");' ],
-            java: [ 'public static void main(String[] args) {\n    System.out.println("Hi");\n}', 'private int count = 0;' ],
-            'c++': [ '#include <iostream>\n\nint main() {\n    std::cout << "C++";\n}', 'vector<int> numbers;' ],
-            rust: [ 'fn main() {\n    println!("Hello, Rust!");\n}', 'let mut a: i32 = 10;' ]
+            python: {
+                variables: [`name = "Alice"`, `age = 30`, `is_active = True`, `items = [1, 2, 3]`],
+                loops: [`for i in range(5):\n  print(i)`, `while count < 5:\n  count += 1`],
+                functions: [`def greet(name):\n  return f"Hello, {name}"`, `def add(a, b):\n  return a + b`]
+            },
+            javascript: {
+                variables: [`let name = "Bob";`, `const score = 100;`, `let isActive = false;`, `const items = [1, 2, 3];`],
+                loops: [`for (let i = 0; i < 5; i++) {\n  console.log(i);\n}`, `items.forEach(item => {\n  console.log(item);\n});`],
+                functions: [`const greet = (name) => {\n  return \`Hello, \${name}\`;\n}`, `function multiply(a, b) {\n  return a * b;\n}`]
+            },
+            java: {
+                variables: [`String name = "Charles";`, `int version = 11;`, `boolean isComplete = true;`],
+                loops: [`for (int i = 0; i < 5; i++) {\n  System.out.println(i);\n}`],
+                functions: [`public String greet(String name) {\n  return "Hello, " + name;\n}`]
+            },
+            'c++': {
+                 variables: [`std::string name = "Diana";`, `int score = 95;`],
+                 loops: [`for (int i = 0; i < 5; ++i) {\n  std::cout << i << std::endl;\n}`],
+                 functions: [`int add(int a, int b) {\n  return a + b;\n}`]
+            },
+            rust: {
+                variables: [`let name = "Eve";`, `let mut count = 0;`],
+                loops: [`for i in 0..5 {\n  println!("{}", i);\n}`],
+                functions: [`fn greet(name: &str) -> String {\n  format!("Hello, {}", name)\n}`]
+            }
         };
         const punctuationList = ['.', ',', ';', "'", '?', '!'];
         const numberList = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
         const layouts = {
              full: [[{t:'`',k:'Backquote',s:'u-100'},{t:'1',k:'Digit1',s:'u-100'},{t:'2',k:'Digit2',s:'u-100'},{t:'3',k:'Digit3',s:'u-100'},{t:'4',k:'Digit4',s:'u-100'},{t:'5',k:'Digit5',s:'u-100'},{t:'6',k:'Digit6',s:'u-100'},{t:'7',k:'Digit7',s:'u-100'},{t:'8',k:'Digit8',s:'u-100'},{t:'9',k:'Digit9',s:'u-100'},{t:'0',k:'Digit0',s:'u-100'},{t:'-',k:'Minus',s:'u-100'},{t:'=',k:'Equal',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-200'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
-            '60': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
+             'no-numrow': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
              split: [[{t:'Esc',k:'Escape',s:'u-100'},{t:'Q',k:'KeyQ',s:'u-100'},{t:'W',k:'KeyW',s:'u-100'},{t:'E',k:'KeyE',s:'u-100'},{t:'R',k:'KeyR',s:'u-100'},{t:'T',k:'KeyT',s:'u-100'},{t:'gap'},{t:'Y',k:'KeyY',s:'u-100'},{t:'U',k:'KeyU',s:'u-100'},{t:'I',k:'KeyI',s:'u-100'},{t:'O',k:'KeyO',s:'u-100'},{t:'P',k:'KeyP',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-150'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'A',k:'KeyA',s:'u-100'},{t:'S',k:'KeyS',s:'u-100'},{t:'D',k:'KeyD',s:'u-100'},{t:'F',k:'KeyF',s:'u-100'},{t:'G',k:'KeyG',s:'u-100'},{t:'gap'},{t:'H',k:'KeyH',s:'u-100'},{t:'J',k:'KeyJ',s:'u-100'},{t:'K',k:'KeyK',s:'u-100'},{t:'L',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-125'}],[{t:'Shift',k:'ShiftLeft',s:'u-175'},{t:'Z',k:'KeyZ',s:'u-100'},{t:'X',k:'KeyX',s:'u-100'},{t:'C',k:'KeyC',s:'u-100'},{t:'V',k:'KeyV',s:'u-100'},{t:'B',k:'KeyB',s:'u-100'},{t:'gap'},{t:'N',k:'KeyN',s:'u-100'},{t:'M',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-175'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-275'},{t:'gap'},{t:' ',k:'Space',s:'u-275'},{t:'Enter',k:'Enter',s:'u-125'},{t:'Alt',k:'AltRight',s:'u-125'}]]
         };
 
         const modeOptions = {
             time: [15, 30, 60, 120],
             words: [10, 25, 50, 100],
-            quote: ['random', '✨'],
-            code: ['random', '✨']
+            quote: ['short', 'medium', 'long'],
+            code: ['variables', 'loops', 'functions']
         };
 
         let keyMap = {};
@@ -590,34 +633,9 @@
             value: 10,
             includePunctuation: false,
             includeNumbers: false,
-            showStats: true
+            showStats: true,
+            showProgressBar: true
         };
-        
-        // --- Gemini API Function ---
-        async function getAIText(mode) {
-            let prompt = '';
-            if (mode === 'code') {
-                 prompt = `Generate a short, one or two-line code snippet in ${codingLanguageSelect.value} for a typing test. It should be practical and easy to type. Do not include markdown formatting or backticks.`;
-            } else if (mode === 'quote') {
-                prompt = `Generate a random famous quote for a typing test. Do not include author attribution.`
-            }
-
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-            const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
-            try {
-                const response = await fetch(apiUrl, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-                if (!response.ok) throw new Error(`API request failed with status ${response.status}`);
-                const result = await response.json();
-                if (result.candidates?.[0]?.content?.parts?.[0]?.text) {
-                    return result.candidates[0].content.parts[0].text.replace(/```[\w\s]*\n|```/g, '').trim();
-                }
-                return "Error: Could not generate text. Please try again.";
-            } catch (error) {
-                console.error("Gemini API Error:", error);
-                return "Error fetching text. Check console for details.";
-            }
-        }
 
         // --- Core Functions ---
         const generateWords = (count) => {
@@ -657,21 +675,13 @@
             } else if (mode === 'words') {
                  newText = generateWords(value);
             } else if (mode === 'quote') {
-                if(value === 'random') {
-                    newText = premadeQuotes[Math.floor(Math.random() * premadeQuotes.length)];
-                } else {
-                    textContentWrapper.innerHTML = `<div class="loading-animation">Generating...</div>`;
-                    newText = await getAIText('quote');
-                }
+                const quoteCategory = premadeQuotes[value] || premadeQuotes.short;
+                newText = quoteCategory[Math.floor(Math.random() * quoteCategory.length)];
             } else if (mode === 'code') {
-                if(value === 'random') {
-                    const lang = codingLanguageSelect.value;
-                    const snippetsForLang = premadeCodeSnippets[lang] || premadeCodeSnippets.javascript;
-                    newText = snippetsForLang[Math.floor(Math.random() * snippetsForLang.length)];
-                } else {
-                    textContentWrapper.innerHTML = `<div class="loading-animation">Generating...</div>`;
-                    newText = await getAIText('code');
-                }
+                const lang = codingLanguageSelect.value;
+                const snippetsForLang = premadeCodeSnippets[lang] || premadeCodeSnippets.javascript;
+                const snippetCategory = snippetsForLang[value] || snippetsForLang.variables;
+                newText = snippetCategory[Math.floor(Math.random() * snippetCategory.length)];
             }
             
             if (thisGenerationId !== generationId) return;
@@ -885,6 +895,8 @@
                 statTimer = setInterval(updateStats, 100);
                 if (testConfig.showStats) {
                     statsContainer.classList.remove('hidden');
+                }
+                if (testConfig.showProgressBar) {
                     inTestStats.classList.remove('hidden');
                 }
                 modeControls.classList.add('hidden');
@@ -917,6 +929,8 @@
             isTestComplete = true;
             modeControls.classList.remove('hidden');
             restartBtn.classList.add('visible');
+            // Always show final stats upon completion
+            statsContainer.classList.remove('hidden');
         }
 
         const setMode = (mode, value) => {
@@ -1052,12 +1066,24 @@
                 renderKeyboard(layout);
             }
         });
+        codingLanguageSelect.addEventListener('change', () => {
+            if (testConfig.mode === 'code') {
+                startTest();
+            }
+        });
         fontTypeSelect.addEventListener('change', e => setFont(e.target.value));
+        
         showStatsCheckbox.addEventListener('change', e => {
             testConfig.showStats = e.target.checked;
             if (isTestActive && !isPaused) {
                 statsContainer.classList.toggle('hidden', !testConfig.showStats);
-                inTestStats.classList.toggle('hidden', !testConfig.showStats);
+            }
+        });
+        
+        showProgressBarCheckbox.addEventListener('change', e => {
+            testConfig.showProgressBar = e.target.checked;
+            if (isTestActive && !isPaused) {
+                inTestStats.classList.toggle('hidden', !testConfig.showProgressBar);
             }
         });
 
@@ -1077,6 +1103,7 @@
                 renderKeyboard(currentLayout);
             }
             showStatsCheckbox.checked = testConfig.showStats;
+            showProgressBarCheckbox.checked = testConfig.showProgressBar;
             startTest();
         });
     </script>
