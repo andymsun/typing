@@ -408,7 +408,7 @@
             <div class="logo">TapDance</div>
             <div class="settings-area">
                 <button class="settings-btn" id="settingsBtn" aria-label="Open settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.69-1.62-0.92L14.4,2.23C14.38,2,14.17,1.88,13.92,1.88h-3.84c-0.25,0-0.46,0.12-0.48,0.35L9.16,4.55c-0.59,0.23-1.12,0.54-1.62,0.92L5.16,4.51C4.95,4.42,4.69,4.49,4.58,4.7l-1.92,3.32C2.56,8.22,2.61,8.49,2.79,8.63l2.03,1.58C4.8,10.56,4.78,10.88,4.78,11.2c0,0.33,0.02,0.64,0.07,0.95l-2.03,1.58c-0.18,0.14-0.24,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.69,1.62,0.92l0.43,2.32C9.54,21.88,9.75,22,10,22h3.84c0.25,0,0.46-0.12,0.48-0.35l0.43-2.32c0.59-0.23,1.12-0.54,1.62-0.92l2.39,0.96c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.69-1.62-0.92L14.4,2.23C14.38,2,14.17,1.88,13.92,1.88h-3.84c-0.25,0-0.46,0.12-0.48,0.35L9.16,4.55c-0.59,0.23-1.12,0.54-1.62,0.92L5.16,4.51C4.95,4.42,4.69,4.49,4.58,4.7l-1.92,3.32C2.56,8.22,2.61,8.49,2.79,8.63l2.03,1.58C4.8,10.56,4.78,10.88,4.78,11.2c0,0.33,0.02,0.64,0.07,0.95l-2.03,1.58c-0.18,0.14-0.24,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03-0.69,1.62,0.92l0.43,2.32C9.54,21.88,9.75,22,10,22h3.84c0.25,0,0.46-0.12,0.48-0.35l0.43-2.32c0.59-0.23,1.12-0.54-1.62-0.92l2.39,0.96c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
                 </button>
                 <div class="settings-panel" id="settingsPanel">
                     <div class="setting">
@@ -516,7 +516,7 @@
                         <!-- Spans are dynamically inserted here -->
                     </div>
                 </div>
-                <button class="restart-btn" id="restartBtn" tabindex="-1">
+                <button class="restart-btn" id="restartBtn">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,4C7.58,4 4,7.58 4,12s3.58,8 8,8 8-3.58 8-8-3.58-8-8-8z M16.5,17.9L12,15.4V9h1.5v5.5l3.8,2L16.5,17.9z"/></svg>
                 </button>
             </div>
@@ -623,7 +623,9 @@ const pauseTest = () => {
     logo.classList.remove('hidden');
     restartBtn.classList.add('visible');
     textDisplayContainer.style.opacity = '0.5'; // Dim the text to indicate pause
-    setTimeout(() => restartBtn.focus(), 0); // Focus the restart button
+    requestAnimationFrame(() => {
+        restartBtn.focus();
+    });
 };
 
 const resetInactivityTimer = () => {
@@ -734,6 +736,8 @@ const renderText = () => {
 
 const updateTextAndCaret = () => {
     const caret = D('caret');
+    if (!caret) return; // Guard against null caret
+    
     // Apply caret style classes
     caret.className = '';
     caret.classList.add(settings.caretStyle);
@@ -751,10 +755,9 @@ const updateTextAndCaret = () => {
     let targetChar = allChars[typedText.length];
 
     // --- Caret Positioning ---
-    // Fix: This condition was causing an error on reset. Added typedText.length > 0 to prevent it.
-    if (typedText.length > 0 && typedText.length >= originalText.length && allChars.length > 0) {
+    if (typedText.length >= originalText.length && allChars.length > 0) {
         targetChar = allChars[originalText.length - 1];
-        if (targetChar) { // Ensure targetChar is not undefined
+        if (targetChar) { 
           caret.style.left = `${targetChar.offsetLeft + targetChar.offsetWidth}px`;
           caret.style.top = `${targetChar.offsetTop}px`;
         }
@@ -775,12 +778,13 @@ const updateTextAndCaret = () => {
     caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : '';
 
     // --- Text Scrolling ---
-    if (!targetChar) {
+    if (!targetChar && allChars.length === 0) {
         textContentWrapper.style.transform = 'translate(0px, 0px)';
         return;
     }
     
     if (settings.textDisplayMode === 'static') {
+        if (!targetChar) return;
         const lineHeight = targetChar.offsetHeight;
         const scrollOffset = targetChar.offsetTop;
         const containerHeight = textDisplayContainer.clientHeight;
