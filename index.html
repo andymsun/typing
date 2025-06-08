@@ -11,14 +11,14 @@
 
     <style>
         /* * --- Design Philosophy ---
-        * Minimalist & Focused: Clean lines, generous spacing, and a focus on the core typing experience.
-        * Customizable: Users can tailor the look and feel with themes, caret styles, and more.
-        * Polished & Modern: Smooth transitions and a refined color palette create a premium feel.
-        */
+         * Minimalist & Focused: Clean lines, generous spacing, and a focus on the core typing experience.
+         * Customizable: Users can tailor the look and feel with themes, caret styles, and more.
+         * Polished & Modern: Smooth transitions and a refined color palette create a premium feel.
+         */
         :root {
             --bg-primary: #111827;      /* Gray 900 */
             --bg-secondary: #1f2937;    /* Gray 800 */
-            --bg-tertiary: #374151;     /* Gray 700 */
+            --bg-tertiary: #374151;      /* Gray 700 */
             --text-primary: #f3f4f6;    /* Gray 100 */
             --text-secondary: #9ca3af;  /* Gray 400 */
             --text-muted: #4b5563;      /* Gray 600 */
@@ -29,7 +29,7 @@
 
             --main-font: 'Roboto Mono', monospace;
             --ui-font: 'Inter', sans-serif;
-            --key-unit-width: 2.75rem;
+            --key-unit-width: 2.25rem; /* New smaller default size */
             --caret-transition-speed: 0.1s;
         }
 
@@ -115,6 +115,11 @@
             font-weight: 600;
             font-size: 1.25rem;
             color: var(--text-secondary);
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .logo.hidden {
+            opacity: 0;
         }
 
         .settings-btn {
@@ -167,6 +172,21 @@
             cursor: pointer;
             width: 140px;
             font-family: var(--ui-font);
+        }
+
+        #resetKeyboardSizeBtn {
+            background:none; 
+            border: 1px solid var(--border-color); 
+            color: var(--text-secondary); 
+            border-radius: 4px; 
+            padding: 2px 6px; 
+            cursor: pointer; 
+            font-size: 0.7rem;
+            transition: all 0.2s ease;
+        }
+        #resetKeyboardSizeBtn:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
         }
         
         /* Toggle Switch */
@@ -324,7 +344,7 @@
         }
         .keyboard.hidden { opacity: 0; visibility: hidden; height: 0; padding: 0; margin: 0; overflow: hidden; }
         .keyboard-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
-         .key-gap {
+        .key-gap {
              width: calc(var(--key-unit-width) * 2);
              flex-shrink: 0;
         }
@@ -357,8 +377,8 @@
         
         /* --- Responsive Design --- */
         @media (max-width: 900px) {
-            :root { --key-unit-width: 2.25rem; }
-            .text-display { font-size: 1.6rem; }
+             /* :root { --key-unit-width: 2.25rem; } */ /* Base size is now controlled by JS */
+             .text-display { font-size: 1.6rem; }
         }
         @media (max-width: 768px) {
             .container { padding: 1rem; }
@@ -416,6 +436,14 @@
                             <option value="underline">Underline</option>
                         </select>
                     </div>
+                     <div class="setting">
+                        <label for="textDisplayModeSelect">Text Style</label>
+                        <select id="textDisplayModeSelect">
+                            <option value="static">Static</option>
+                            <option value="scroll-char">Scroll (Char)</option>
+                            <option value="scroll-word">Scroll (Word)</option>
+                        </select>
+                    </div>
                     <div class="setting">
                         <label for="smoothCaretToggle">Smooth Caret</label>
                         <label class="toggle-switch">
@@ -438,6 +466,13 @@
                             <option value="no-numrow">No Numrow</option>
                             <option value="split">Split</option>
                         </select>
+                    </div>
+                    <div class="setting">
+                        <label for="keyboardSizeSlider">Keyboard Size</label>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="range" id="keyboardSizeSlider" min="1.5" max="3.5" step="0.05" style="width: 100px; cursor: pointer;">
+                            <button id="resetKeyboardSizeBtn">Reset</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -487,6 +522,7 @@
 <script>
 // --- DOM Elements ---
 const D = (id) => document.getElementById(id);
+const logo = document.querySelector('.logo');
 const textContentWrapper = D('textContentWrapper');
 const statsContainer = D('stats');
 const wpmDisplay = D('wpm');
@@ -512,9 +548,12 @@ const themeSelect = D('themeSelect');
 const accentColorPicker = D('accentColor');
 const fontTypeSelect = D('fontType');
 const caretStyleSelect = D('caretStyleSelect');
+const textDisplayModeSelect = D('textDisplayModeSelect');
 const smoothCaretToggle = D('smoothCaretToggle');
 const soundToggle = D('soundToggle');
 const keyboardTypeSelect = D('keyboardType');
+const keyboardSizeSlider = D('keyboardSizeSlider');
+const resetKeyboardSizeBtn = D('resetKeyboardSizeBtn');
 
 // --- Data & State ---
 const wordList = ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"];
@@ -522,11 +561,12 @@ const punctuationList = ['.', ',', ';', "'", '?', '!'];
 const layouts = {
     full: [[{t:'`',k:'Backquote',s:'u-100'},{t:'1',k:'Digit1',s:'u-100'},{t:'2',k:'Digit2',s:'u-100'},{t:'3',k:'Digit3',s:'u-100'},{t:'4',k:'Digit4',s:'u-100'},{t:'5',k:'Digit5',s:'u-100'},{t:'6',k:'Digit6',s:'u-100'},{t:'7',k:'Digit7',s:'u-100'},{t:'8',k:'Digit8',s:'u-100'},{t:'9',k:'Digit9',s:'u-100'},{t:'0',k:'Digit0',s:'u-100'},{t:'-',k:'Minus',s:'u-100'},{t:'=',k:'Equal',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-200'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
     'no-numrow': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
-    split: [[{t:'`',s:'u-100',k:'Backquote'},{t:'1',s:'u-100',k:'Digit1'},{t:'2',s:'u-100',k:'Digit2'},{t:'3',s:'u-100',k:'Digit3'},{t:'4',s:'u-100',k:'Digit4'},{t:'5',s:'u-100',k:'Digit5'},{t:'gap'},{t:'6',s:'u-100',k:'Digit6'},{t:'7',s:'u-100',k:'Digit7'},{t:'8',s:'u-100',k:'Digit8'},{t:'9',s:'u-100',k:'Digit9'},{t:'0',s:'u-100',k:'Digit0'},{t:'-',s:'u-100',k:'Minus'},{t:'=',s:'u-100',k:'Equal'}],
-            [{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'gap'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'}],
-            [{t:'Caps',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'gap'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'\\',k:'Backslash',s:'u-125'}],
-            [{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'gap'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],
-            [{t:' ',s:'u-275',k:'Space'},{t:'Backspace',s:'u-150',k:'Backspace'},{t:'gap'},{t:'Enter',s:'u-150',k:'Enter'},{t:' ',s:'u-275',k:'Space'}]]
+    split: [
+        [{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'gap'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'}, {t:'\\', k:'Backslash', s:'u-150'}],
+        [{t:'Caps',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'gap'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'}, {t:'Enter', k:'Enter', s:'u-225'}],
+        [{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'gap'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],
+        [{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',s:'u-275',k:'Space'},{t:'gap'},{t:' ',s:'u-275',k:'Space'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]
+    ]
 };
 const modeOptions = { time: [15, 30, 60, 120], words: [10, 25, 50, 100], quote: ['short', 'medium', 'long'], zen: [] };
 
@@ -547,6 +587,7 @@ let testConfig = {
 let settings = {
     theme: 'dark', accent: '#34d399', font: "'Roboto Mono', monospace",
     caretStyle: 'line', smoothCaret: true, sound: false, keyboard: 'hidden',
+    keyboardSize: 2.25, textDisplayMode: 'static',
 };
 
 // --- Sound Engine ---
@@ -607,6 +648,7 @@ const resetTest = () => {
     totalCharsTyped = 0;
     totalErrors = 0;
 
+    logo.classList.remove('hidden');
     textContentWrapper.innerHTML = `<span class="char" style="color: var(--text-secondary)">Select a mode to begin...</span>`;
     statsContainer.classList.add('hidden');
     inTestStats.classList.add('hidden');
@@ -615,6 +657,7 @@ const resetTest = () => {
     caret.style.opacity = '1';
     liveWPMDisplay.textContent = '';
     liveAccDisplay.textContent = '';
+    textContentWrapper.style.transform = 'translate(0, 0)';
     updateTextScroll();
 };
 
@@ -623,6 +666,7 @@ const completeTest = () => {
     updateStats(true); // Final update
     isTestActive = false;
     isTestComplete = true;
+    logo.classList.remove('hidden');
     modeControls.classList.remove('hidden');
     restartBtn.classList.add('visible');
     statsContainer.classList.remove('hidden');
@@ -685,26 +729,52 @@ const updateCaretPosition = () => {
 };
 
 const updateTextScroll = () => {
-    const isStatic = true; // Simplified to always use static multiline display
-    textContentWrapper.classList.toggle('static', isStatic);
-
-    const targetChar = textContentWrapper.querySelectorAll('.char')[typedText.length];
+    // Set class for text wrapping behavior
+    textContentWrapper.className = 'text-content-wrapper';
+    if (settings.textDisplayMode === 'static') {
+        textContentWrapper.classList.add('static');
+    } else {
+        textContentWrapper.classList.add('scroll');
+    }
+    
+    const allChars = textContentWrapper.querySelectorAll('.char');
+    const targetChar = allChars[typedText.length];
     if (!targetChar) {
-       textContentWrapper.style.transform = 'translateY(0px)';
-       return;
+        textContentWrapper.style.transform = 'translate(0px, 0px)';
+        return;
     }
 
-    const lineHeight = targetChar.offsetHeight;
-    const scrollOffset = targetChar.offsetTop;
-    
-    const containerHeight = textDisplayContainer.clientHeight;
-    let targetScroll = scrollOffset - (containerHeight / 2) + (lineHeight / 2);
+    if (settings.textDisplayMode === 'static') {
+        // Vertical scrolling logic
+        const lineHeight = targetChar.offsetHeight;
+        const scrollOffset = targetChar.offsetTop;
+        const containerHeight = textDisplayContainer.clientHeight;
+        let targetScrollY = scrollOffset - (containerHeight / 2) + (lineHeight / 2);
+        const maxScroll = textContentWrapper.scrollHeight - containerHeight;
+        targetScrollY = Math.max(0, Math.min(targetScrollY, maxScroll));
+        textContentWrapper.style.transform = `translateY(-${targetScrollY}px)`;
+    } else {
+        // Horizontal scrolling logic
+        let scrollTargetElement = targetChar;
+        if (settings.textDisplayMode === 'scroll-word') {
+            let currentIdx = typedText.length;
+            while (currentIdx > 0 && originalText[currentIdx - 1] !== ' ') {
+                currentIdx--;
+            }
+            scrollTargetElement = allChars[currentIdx] || targetChar;
+        }
 
-    const maxScroll = textContentWrapper.scrollHeight - containerHeight;
-    targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
-    
-    textContentWrapper.style.transform = `translateY(-${targetScroll}px)`;
+        const containerWidth = textDisplayContainer.clientWidth;
+        const targetPosition = containerWidth / 4; // Scroll to 1/4th from the left
+        const scrollOffset = scrollTargetElement.offsetLeft;
+
+        let targetScrollX = scrollOffset - targetPosition;
+        targetScrollX = Math.max(0, targetScrollX); // Don't scroll left past the beginning
+        
+        textContentWrapper.style.transform = `translateX(-${targetScrollX}px)`;
+    }
 };
+
 
 const updateStats = (isFinal = false) => {
     if (!startTime) return;
@@ -788,10 +858,11 @@ const handleKeyPress = (e) => {
     if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
     
     if (!isTestActive) {
-        if (e.key.length !== 1) return;
+        if (e.key.length !== 1 && e.key !== 'Backspace') return;
         isTestActive = true;
         startTime = Date.now();
         statTimer = setInterval(updateStats, 200);
+        logo.classList.add('hidden');
         statsContainer.classList.remove('hidden');
         inTestStats.classList.remove('hidden');
         modeControls.classList.add('hidden');
@@ -828,6 +899,7 @@ const applySettings = () => {
     document.body.dataset.theme = settings.theme;
     document.documentElement.style.setProperty('--accent-color', settings.accent);
     document.documentElement.style.setProperty('--main-font', settings.font);
+    document.documentElement.style.setProperty('--key-unit-width', `${settings.keyboardSize}rem`);
     
     caret.className = '';
     caret.classList.add(settings.caretStyle);
@@ -837,6 +909,7 @@ const applySettings = () => {
     if (settings.keyboard !== 'hidden') {
         renderKeyboard(settings.keyboard);
     }
+    updateTextScroll(); // Apply text style
 };
 
 const saveSettings = () => {
@@ -852,9 +925,11 @@ const loadSettings = () => {
     accentColorPicker.value = settings.accent;
     fontTypeSelect.value = settings.font;
     caretStyleSelect.value = settings.caretStyle;
+    textDisplayModeSelect.value = settings.textDisplayMode;
     smoothCaretToggle.checked = settings.smoothCaret;
     soundToggle.checked = settings.sound;
     keyboardTypeSelect.value = settings.keyboard;
+    keyboardSizeSlider.value = settings.keyboardSize;
     
     applySettings();
 };
@@ -954,25 +1029,30 @@ document.addEventListener('DOMContentLoaded', () => {
             settingsBtn.classList.remove('open');
         }
     });
-
-    const addSettingListener = (el, key) => {
-        const event = el.type === 'checkbox' ? 'change' : 'input';
-        const valueProp = el.type === 'checkbox' ? 'checked' : 'value';
-        el.addEventListener(event, e => { 
-            settings[key] = e.target[valueProp];
-            applySettings();
-            saveSettings(); 
-        });
-    };
     
     themeSelect.addEventListener('change', e => { settings.theme = e.target.value; applySettings(); saveSettings(); });
     accentColorPicker.addEventListener('input', e => { settings.accent = e.target.value; document.documentElement.style.setProperty('--accent-color', settings.accent); });
-    accentColorPicker.addEventListener('change', e => { saveSettings(); }); // Save on final selection
+    accentColorPicker.addEventListener('change', () => { saveSettings(); }); // Save on final selection
     fontTypeSelect.addEventListener('change', e => { settings.font = e.target.value; applySettings(); saveSettings(); });
     caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); updateCaretPosition(); });
+    textDisplayModeSelect.addEventListener('change', e => { settings.textDisplayMode = e.target.value; applySettings(); saveSettings();});
     smoothCaretToggle.addEventListener('change', e => { settings.smoothCaret = e.target.checked; applySettings(); saveSettings(); });
     soundToggle.addEventListener('change', e => { settings.sound = e.target.checked; saveSettings(); if(settings.sound) setupSound(); });
     keyboardTypeSelect.addEventListener('change', e => { settings.keyboard = e.target.value; applySettings(); saveSettings(); });
+
+    keyboardSizeSlider.addEventListener('input', e => {
+        settings.keyboardSize = e.target.value;
+        applySettings();
+    });
+    keyboardSizeSlider.addEventListener('change', () => { // Save on final selection
+        saveSettings();
+    });
+    resetKeyboardSizeBtn.addEventListener('click', () => {
+        settings.keyboardSize = 2.25; // Default value
+        keyboardSizeSlider.value = settings.keyboardSize;
+        applySettings();
+        saveSettings();
+    });
     
     document.addEventListener('keydown', handleKeyPress);
     restartBtn.addEventListener('click', startTest);
