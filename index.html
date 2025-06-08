@@ -338,7 +338,7 @@
             transform: scale(0.9); display: flex; align-items: center; justify-content: center;
         }
         .restart-btn.visible { opacity: 1; visibility: visible; height: auto; transform: scale(1); }
-        .restart-btn:hover { color: var(--accent-color); transform: scale(1.1); }
+        .restart-btn:hover, .restart-btn:focus { color: var(--accent-color); transform: scale(1.1); outline: none; }
         .restart-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
         /* --- FOOTER / KEYBOARD --- */
@@ -381,8 +381,8 @@
         
         /* --- Responsive Design --- */
         @media (max-width: 900px) {
-             /* :root { --key-unit-width: 2.25rem; } */ /* Base size is now controlled by JS */
-             .text-display { font-size: 1.6rem; }
+            /* :root { --key-unit-width: 2.25rem; } */ /* Base size is now controlled by JS */
+            .text-display { font-size: 1.6rem; }
         }
         @media (max-width: 768px) {
             .container { padding: 1rem; }
@@ -393,11 +393,11 @@
             .keyboard { display: none; } /* Hide keyboard on smaller screens for better experience */
         }
         @media (max-width: 480px) {
-             .text-display { font-size: 1.4rem; line-height: 1.8; max-height: 120px; }
-             .test-mode-controls { font-size: 0.8rem; }
-             .mode-btn { padding: 0.4rem 0.8rem; }
-             .stats { gap: 1.5rem; }
-             .stat-value { font-size: 1.5rem; }
+            .text-display { font-size: 1.4rem; line-height: 1.8; max-height: 120px; }
+            .test-mode-controls { font-size: 0.8rem; }
+            .mode-btn { padding: 0.4rem 0.8rem; }
+            .stats { gap: 1.5rem; }
+            .stat-value { font-size: 1.5rem; }
         }
 
     </style>
@@ -878,13 +878,28 @@ const pressKey = (keyCode) => {
 
 // --- Event Handlers ---
 const handleKeyPress = (e) => {
-    if (e.key === 'Tab' || e.key === 'Escape') {
+    // When the test is finished or paused, 'Tab' can be used to focus the restart button.
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        // If the test is active, pause it. The pause function handles focusing the restart button.
+        if (isTestActive) {
+            pauseTest();
+        } 
+        // If the test is not active (i.e., it's paused or completed), just focus the restart button.
+        else if (restartBtn.classList.contains('visible')) {
+            restartBtn.focus();
+        }
+        return;
+    }
+    
+    if (e.key === 'Escape') {
         e.preventDefault();
         if (isTestActive) {
             pauseTest();
         }
         return;
     }
+
     const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
     
