@@ -34,7 +34,7 @@
         }
 
         /* --- Theme Definitions --- */
-        body[data-theme="latte"] {
+        body[data-theme="light"] { /* MODIFIED: Renamed from latte */
             --bg-primary: #eff1f5;
             --bg-secondary: #e6e9ef;
             --bg-tertiary: #dce0e8;
@@ -139,18 +139,18 @@
         .container {
             width: 100%;
             height: 100%;
-            padding: 2rem;
+            padding: 1rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            gap: 1rem; /* Reduced gap for more compact layout */
+            gap: 1rem; 
         }
 
         /* --- HEADER / SETTINGS --- */
         .header {
             position: absolute;
-            top: 1rem; /* Closer to top */
+            top: 1rem;
             left: 1rem;
             right: 1rem;
             display: flex;
@@ -203,7 +203,7 @@
             padding: 1.5rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            width: 280px; /* Slightly narrower for mobile */
+            width: 280px;
             z-index: 10;
             box-shadow: 0 15px 35px rgba(0,0,0,0.25);
         }
@@ -275,17 +275,16 @@
             width: 100%;
             max-width: 900px;
             gap: 1.5rem;
-            margin-top: 0; /* Removed negative margin */
         }
 
         /* --- Stats (Results) --- */
         .stats {
-            display: flex; gap: 2rem; /* Reduced gap */
-            flex-wrap: wrap; /* Allow stats to wrap */
+            display: flex; gap: 2rem;
+            flex-wrap: wrap;
             justify-content: center;
             transition: opacity 0.3s ease, transform 0.3s ease;
             transform: translateY(20px);
-            min-height: 60px; /* Use min-height to allow wrapping */
+            min-height: 60px;
         }
         .stats.hidden { opacity: 0; visibility: hidden; transform: translateY(0px); }
 
@@ -326,6 +325,21 @@
         .typing-area {
             display: flex; flex-direction: column; justify-content: center;
             align-items: center; gap: 1rem; width: 100%;
+            position: relative; /* Needed for mobile input positioning */
+        }
+        
+        /* ADDED: Invisible input for mobile keyboard */
+        #mobileInput {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            border: none;
+            padding: 0;
+            caret-color: transparent; /* Hide the caret of the input field itself */
+            background: transparent;
         }
 
         /* In-Test Stats (live stats) */
@@ -348,6 +362,8 @@
             position: relative;
             cursor: text;
             transition: opacity 0.3s ease;
+            display: flex; /* Helps with vertical alignment */
+            align-items: center; /* Helps with vertical alignment */
         }
 
         .text-content-wrapper { 
@@ -372,6 +388,7 @@
             border-radius: 2px;
             opacity: 0;
             animation: blink 1s infinite;
+            z-index: 2; /* Ensure caret is above text */
         }
         #caret.line { width: 2px; background-color: var(--accent-color); }
         #caret.block { background-color: var(--accent-color); opacity: 0.3 !important; animation: none; }
@@ -457,22 +474,20 @@
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             .header { top: 1rem; left: 1rem; right: 1rem; }
-            :root { --key-unit-width: 1.8rem; }
-            .keyboard { display: none; } /* Hide keyboard on smaller screens */
+            .keyboard { display: none !important; } /* Hide keyboard on smaller screens */
 
-            /* MODIFIED: Stack controls vertically for tablets and phones */
             .test-mode-controls {
                 flex-direction: column;
-                align-items: stretch; /* Make groups take full width */
+                align-items: stretch;
                 gap: 1rem;
             }
             .mode-divider {
-                display: none; /* Hide vertical divider */
+                display: none;
             }
              .mode-btn {
-                padding: 0.8rem 1rem;      /* Better tap size */
-                font-size: 1rem;           /* More readable */
-                min-height: 44px;          /* Ensure minimum tap target height */
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
+                min-height: 44px;
             }
         }
 
@@ -500,7 +515,7 @@
                         <label for="themeSelect">Theme</label>
                         <select id="themeSelect">
                             <option value="dark">Dark</option>
-                            <option value="latte">Latte</option>
+                            <option value="light">Light</option> <!-- MODIFIED: Renamed -->
                             <option value="ocean">Ocean</option>
                             <option value="matrix">Matrix</option>
                             <option value="dracula">Dracula</option>
@@ -601,7 +616,9 @@
                 <div class="mode-group" id="secondaryModeGroup"></div>
             </div>
 
-            <div class="typing-area">
+            <div class="typing-area" id="typingArea">
+                 <!-- ADDED: Invisible input for mobile keyboard -->
+                <input type="text" id="mobileInput" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
                 <div class="in-test-stats hidden" id="inTestStats">
                     <span id="liveWPM" class="live-stat-wpm"></span>
                     <span id="liveAcc" class="live-stat-acc"></span>
@@ -642,6 +659,8 @@ const inTestStats = D('inTestStats');
 const liveWPMDisplay = D('liveWPM');
 const liveAccDisplay = D('liveAcc');
 const textDisplayContainer = D('textDisplayContainer');
+const typingArea = D('typingArea'); // MODIFIED
+const mobileInput = D('mobileInput'); // MODIFIED
 const modeDivider = D('modeDivider');
 
 // --- Settings Elements ---
@@ -683,8 +702,6 @@ let statTimer = null;
 let inactivityTimer = null;
 let totalCharsTyped = 0;
 let totalErrors = 0;
-let justSkipped = false;
-let lastSkipInfo = null;
 
 let testConfig = {
     mode: 'words', value: 25,
@@ -712,16 +729,14 @@ const playErrorSound = () => settings.sound && synth && synth.triggerAttackRelea
 // --- Inactivity & Pause Logic ---
 const pauseTest = () => {
     if (!isTestActive) return;
-    isTestActive = false; // This effectively pauses the test state
+    isTestActive = false; 
     clearInterval(statTimer);
     clearTimeout(inactivityTimer);
     inactivityTimer = null;
-
-    // Show UI elements that are hidden during a test
     modeControls.classList.remove('hidden');
     logo.classList.remove('hidden');
     restartBtn.classList.add('visible');
-    textDisplayContainer.style.opacity = '0.5'; // Dim the text to indicate pause
+    textDisplayContainer.style.opacity = '0.5';
     requestAnimationFrame(() => {
         restartBtn.focus();
     });
@@ -730,7 +745,7 @@ const pauseTest = () => {
 const resetInactivityTimer = () => {
     clearTimeout(inactivityTimer);
     if (isTestActive) {
-        inactivityTimer = setTimeout(pauseTest, 3000); // 3-second timeout
+        inactivityTimer = setTimeout(pauseTest, 3000);
     }
 };
 
@@ -775,19 +790,16 @@ const resetTest = () => {
     isTestComplete = false;
     originalText = '';
     typedText = '';
+    mobileInput.value = ''; // MODIFIED
     startTime = null;
     lastTypedTime = null;
     statTimer = null;
     inactivityTimer = null;
     totalCharsTyped = 0;
     totalErrors = 0;
-    justSkipped = false;
-    lastSkipInfo = null;
-
 
     logo.classList.remove('hidden');
     textDisplayContainer.style.opacity = '1';
-    // Clear previous text, keeping the caret
     textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
     
     statsContainer.classList.add('hidden');
@@ -804,9 +816,10 @@ const resetTest = () => {
 const completeTest = () => {
     if (statTimer) clearInterval(statTimer);
     clearTimeout(inactivityTimer);
-    updateStats(true); // Final update
+    updateStats(true); 
     isTestActive = false;
     isTestComplete = true;
+    mobileInput.blur(); // MODIFIED
     logo.classList.remove('hidden');
     modeControls.classList.remove('hidden');
     restartBtn.classList.add('visible');
@@ -819,32 +832,36 @@ const completeTest = () => {
 
 // --- Rendering & UI Updates ---
 const renderText = () => {
-    // A safer way to clear previous characters while keeping the caret element
     textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
 
     const fragment = document.createDocumentFragment();
+    let currentErrors = 0;
     originalText.split('').forEach((char, index) => {
         const charEl = document.createElement('span');
         charEl.className = 'char';
         charEl.textContent = char;
         if (index < typedText.length) {
-            charEl.classList.add(char === typedText[index] ? 'correct' : 'incorrect');
+            if (char === typedText[index]) {
+                charEl.classList.add('correct');
+            } else {
+                charEl.classList.add('incorrect');
+                currentErrors++;
+            }
         }
         fragment.appendChild(charEl);
     });
+    totalErrors = currentErrors;
     textContentWrapper.appendChild(fragment);
     updateTextAndCaret();
 };
 
 const updateTextAndCaret = () => {
     const caret = D('caret');
-    if (!caret) return; // Guard against null caret
+    if (!caret) return; 
     
-    // Apply caret style classes
-    caret.className = 'caret'; // Reset classes first
+    caret.className = 'caret';
     caret.classList.add(settings.caretStyle);
     if (settings.smoothCaret) caret.classList.add('smooth');
-
 
     textContentWrapper.className = 'text-content-wrapper';
     if (settings.textDisplayMode === 'static') {
@@ -856,7 +873,6 @@ const updateTextAndCaret = () => {
     const allChars = textContentWrapper.querySelectorAll('.char');
     let targetChar = allChars[typedText.length];
 
-    // --- Caret Positioning ---
     if (typedText.length >= originalText.length && allChars.length > 0) {
         targetChar = allChars[originalText.length - 1];
         if (targetChar) { 
@@ -866,10 +882,10 @@ const updateTextAndCaret = () => {
     } else if (targetChar) {
         caret.style.left = `${targetChar.offsetLeft}px`;
         caret.style.top = `${targetChar.offsetTop}px`;
-    } else if (allChars.length > 0) { // Position at the start if no text typed
+    } else if (allChars.length > 0) {
         caret.style.left = `${allChars[0].offsetLeft}px`;
         caret.style.top = `${allChars[0].offsetTop}px`;
-    } else { // Fallback for empty text
+    } else {
         caret.style.left = '0px';
         caret.style.top = '0px';
     }
@@ -883,8 +899,6 @@ const updateTextAndCaret = () => {
     }
     caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : (settings.caretStyle === 'line' ? '2px' : '');
 
-
-    // --- Text Scrolling ---
     if (!targetChar && allChars.length === 0) {
         textContentWrapper.style.transform = 'translate(0px, 0px)';
         return;
@@ -899,21 +913,16 @@ const updateTextAndCaret = () => {
         const containerHeight = textDisplayContainer.clientHeight;
         const currentLineOffset = targetChar.offsetTop;
         const lineHeight = targetChar.offsetHeight;
-
         const scrollY = currentLineOffset - (containerHeight / 2) + (lineHeight / 2);
-
         const maxScroll = textContentWrapper.scrollHeight - containerHeight;
         const clampedScrollY = Math.max(0, Math.min(scrollY, maxScroll));
-
         textContentWrapper.style.transform = `translateY(-${clampedScrollY}px)`;
 
     } else {
-        // Horizontal scroll logic
         const containerCenter = textDisplayContainer.clientWidth / 2;
         const caretLeft = parseFloat(caret.style.left) || 0;
         const caretWidth = caret.offsetWidth;
         const caretCenter = caretLeft + (caretWidth / 2);
-
         let targetX = containerCenter - caretCenter;
         textContentWrapper.style.transform = `translateX(${targetX}px)`;
     }
@@ -926,7 +935,6 @@ const updateStats = (isFinal = false) => {
     const minutes = elapsed / 60;
     
     const correctChars = typedText.split('').filter((c, i) => c === originalText[i]).length;
-    // Prevent division by zero if test is very short
     const wpm = minutes > 0.005 ? Math.round((correctChars / 5) / minutes) : 0;
     
     const accuracy = totalCharsTyped > 0 ? Math.round(((totalCharsTyped - totalErrors) / totalCharsTyped) * 100) : 100;
@@ -991,45 +999,13 @@ const pressKey = (keyCode) => {
     }
 };
 
-// --- Event Handlers ---
-const handleKeyPress = (e) => {
-    if (e.key === 'Tab') {
-        e.preventDefault();
-        if (isTestActive) {
-            pauseTest();
-        } 
-        else if (restartBtn.classList.contains('visible')) {
-            restartBtn.focus();
-        }
-        return;
-    }
-    
-    if (e.key === 'Escape') {
-        e.preventDefault();
-        if (isTestActive) {
-            pauseTest();
-        } else if (!isTestActive && !isTestComplete) {
-            startTest(); // Restart if paused
-        }
-        return;
-    }
-
-    const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-    if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
-    
-    if (originalText === '') return; // Don't start on empty text
+// --- MODIFIED: Event Handlers for Mobile and Desktop ---
+const processInput = () => {
+    if (isTestComplete) return;
 
     if (!isTestActive) {
-        if (e.key.length !== 1 && e.key !== 'Backspace') return;
-        
         isTestActive = true;
-        if (!startTime) { 
-            startTime = Date.now();
-        } else { 
-             const pauseDuration = Date.now() - lastTypedTime;
-             startTime += pauseDuration;
-        }
-
+        startTime = Date.now();
         statTimer = setInterval(updateStats, 250);
         logo.classList.add('hidden');
         inTestStats.classList.remove('hidden');
@@ -1040,63 +1016,47 @@ const handleKeyPress = (e) => {
     
     lastTypedTime = Date.now();
     resetInactivityTimer();
-    pressKey(e.code);
-    e.preventDefault();
 
-    if (e.key === 'Backspace') {
-        if (justSkipped) {
-            const amount = lastSkipInfo.to - lastSkipInfo.from;
-            totalCharsTyped -= amount;
-            totalErrors -= amount;
-            typedText = typedText.substring(0, lastSkipInfo.from);
-            justSkipped = false;
-            lastSkipInfo = null;
-        } else if (typedText.length > 0) {
-            typedText = typedText.slice(0, -1);
-            justSkipped = false; 
-        }
-        playKeySound();
-    } 
-    else if (e.key.length === 1 && typedText.length < originalText.length) {
-        const isSkipAttempt = settings.skipWordOnSpace && e.key === ' ' && originalText[typedText.length] !== ' ';
-
-        if (isSkipAttempt) {
-            playErrorSound();
-            const skipFrom = typedText.length;
-            const nextSpaceIndex = originalText.indexOf(' ', skipFrom);
-            
-            const targetIndex = (nextSpaceIndex === -1) 
-                ? originalText.length 
-                : nextSpaceIndex + 1;
-
-            const numToAdvance = targetIndex - skipFrom;
-            typedText += '\0'.repeat(numToAdvance); 
-            totalCharsTyped += numToAdvance;
-            totalErrors += numToAdvance;
-            
-            lastSkipInfo = { from: skipFrom, to: targetIndex };
-            justSkipped = true;
+    const currentInput = mobileInput.value;
+    
+    // Play sound based on last character typed
+    if (currentInput.length > typedText.length) { // Character added
+        const lastChar = currentInput.slice(-1);
+        const originalChar = originalText[currentInput.length - 1];
+        if(lastChar === originalChar) {
+            playKeySound();
         } else {
-            justSkipped = false;
-            totalCharsTyped++;
-            
-            if (e.key !== originalText[typedText.length]) {
-                totalErrors++;
-                playErrorSound();
-            } else {
-                playKeySound();
-            }
-            typedText += e.key;
+            playErrorSound();
         }
-    } else {
-        justSkipped = false;
+    } else { // Backspace
+        playKeySound();
     }
 
-    renderText();
+    typedText = currentInput;
+    totalCharsTyped = typedText.length;
+
+    renderText(); 
     updateStats(); 
 
     if (testConfig.mode !== 'time' && testConfig.mode !== 'zen' && typedText.length >= originalText.length) {
         completeTest();
+    }
+};
+
+const handleKeyDown = (e) => {
+    pressKey(e.code); // Visual feedback for physical keyboard
+    
+    if (e.key === 'Escape') {
+        e.preventDefault();
+        if (isTestActive) pauseTest();
+        else if (!isTestComplete) startTest();
+        return;
+    }
+    if (e.key === 'Tab') {
+        e.preventDefault();
+        if (isTestActive) pauseTest();
+        else if (restartBtn.classList.contains('visible')) restartBtn.focus();
+        return;
     }
 };
 
@@ -1122,6 +1082,11 @@ const loadSettings = () => {
     const saved = localStorage.getItem('tapdance-settings');
     if (saved) {
         settings = { ...settings, ...JSON.parse(saved) };
+    }
+    // Handle rename from latte to light for returning users
+    if (settings.theme === 'latte') {
+        settings.theme = 'light';
+        saveSettings();
     }
     themeSelect.value = settings.theme;
     accentColorPicker.value = settings.accent;
@@ -1258,9 +1223,12 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettings();
     });
     
-    document.addEventListener('keydown', handleKeyPress);
+    // MODIFIED: Event listeners for unified input
+    document.addEventListener('keydown', handleKeyDown);
+    mobileInput.addEventListener('input', processInput);
+    typingArea.addEventListener('click', () => mobileInput.focus()); // Focus input on tap
+
     restartBtn.addEventListener('click', startTest);
-    textDisplayContainer.addEventListener('click', () => document.body.focus());
     window.addEventListener('resize', () => { updateTextAndCaret(); });
 });
 </script>
