@@ -297,9 +297,13 @@
             max-height: 180px; /* ~3 lines */
             position: relative;
             cursor: text; /* Indicate this area is interactive */
+            transition: opacity 0.3s ease;
         }
 
-        .text-content-wrapper { transition: transform 0.2s ease-out; }
+        .text-content-wrapper { 
+            position: relative;
+            transition: transform 0.2s ease-out; 
+        }
         .text-content-wrapper.static { white-space: normal; }
         .text-content-wrapper.scroll { white-space: nowrap; }
 
@@ -507,8 +511,10 @@
                     <span id="liveAcc" class="live-stat-acc"></span>
                 </div>
                 <div class="text-display" id="textDisplayContainer">
-                    <div class="text-content-wrapper" id="textContentWrapper"></div>
-                    <div id="caret" class="line"></div>
+                    <div class="text-content-wrapper" id="textContentWrapper">
+                        <div id="caret" class="line"></div>
+                        <!-- Spans are dynamically inserted here -->
+                    </div>
                 </div>
                 <button class="restart-btn" id="restartBtn" tabindex="-1">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,4C7.58,4 4,7.58 4,12s3.58,8 8,8 8-3.58 8-8-3.58-8-8-8z M16.5,17.9L12,15.4V9h1.5v5.5l3.8,2L16.5,17.9z"/></svg>
@@ -539,7 +545,6 @@ const restartBtn = D('restartBtn');
 const inTestStats = D('inTestStats');
 const liveWPMDisplay = D('liveWPM');
 const liveAccDisplay = D('liveAcc');
-const caret = D('caret');
 const textDisplayContainer = D('textDisplayContainer');
 const modeDivider = D('modeDivider');
 
@@ -576,7 +581,9 @@ let typedText = '';
 let isTestActive = false;
 let isTestComplete = false;
 let startTime = null;
+let lastTypedTime = null;
 let statTimer = null;
+let inactivityTimer = null;
 let totalCharsTyped = 0;
 let totalErrors = 0;
 
@@ -602,6 +609,30 @@ const setupSound = () => {
 };
 const playKeySound = () => settings.sound && synth && synth.triggerAttackRelease('C5', '8n');
 const playErrorSound = () => settings.sound && synth && synth.triggerAttackRelease('C4', '8n', Tone.now(), 0.6);
+
+// --- Inactivity & Pause Logic ---
+const pauseTest = () => {
+    if (!isTestActive) return;
+    isTestActive = false; // This effectively pauses the test state
+    clearInterval(statTimer);
+    clearTimeout(inactivityTimer);
+    inactivityTimer = null;
+
+    // Show UI elements that are hidden during a test
+    modeControls.classList.remove('hidden');
+    logo.classList.remove('hidden');
+    restartBtn.classList.add('visible');
+    textDisplayContainer.style.opacity = '0.5'; // Dim the text to indicate pause
+    setTimeout(() => restartBtn.focus(), 0); // Focus the restart button
+};
+
+const resetInactivityTimer = () => {
+    clearTimeout(inactivityTimer);
+    if (isTestActive) {
+        inactivityTimer = setTimeout(pauseTest, 3000); // 3-second timeout
+    }
+};
+
 
 // --- Core Test Logic ---
 const generateText = () => {
@@ -634,35 +665,39 @@ const startTest = () => {
     resetTest();
     originalText = generateText();
     renderText();
-    updateCaretPosition();
 };
 
 const resetTest = () => {
     if (statTimer) clearInterval(statTimer);
+    clearTimeout(inactivityTimer);
     isTestActive = false;
     isTestComplete = false;
     originalText = '';
     typedText = '';
     startTime = null;
+    lastTypedTime = null;
     statTimer = null;
+    inactivityTimer = null;
     totalCharsTyped = 0;
     totalErrors = 0;
 
     logo.classList.remove('hidden');
-    textContentWrapper.innerHTML = `<span class="char" style="color: var(--text-secondary)">Select a mode to begin...</span>`;
+    textDisplayContainer.style.opacity = '1';
+    textContentWrapper.innerHTML = `<div id="caret" class="line"></div><span class="char" style="color: var(--text-secondary)">Select a mode to begin...</span>`;
     statsContainer.classList.add('hidden');
     inTestStats.classList.add('hidden');
     modeControls.classList.remove('hidden');
     restartBtn.classList.remove('visible');
-    caret.style.opacity = '1';
+    D('caret').style.opacity = '1';
     liveWPMDisplay.textContent = '';
     liveAccDisplay.textContent = '';
     textContentWrapper.style.transform = 'translate(0, 0)';
-    updateTextScroll();
+    updateTextAndCaret();
 };
 
 const completeTest = () => {
     if (statTimer) clearInterval(statTimer);
+    clearTimeout(inactivityTimer);
     updateStats(true); // Final update
     isTestActive = false;
     isTestComplete = true;
@@ -671,13 +706,18 @@ const completeTest = () => {
     restartBtn.classList.add('visible');
     statsContainer.classList.remove('hidden');
     inTestStats.classList.add('hidden');
-    caret.style.opacity = '0';
+    textDisplayContainer.style.opacity = '1';
+    D('caret').style.opacity = '0';
     setTimeout(() => restartBtn.focus(), 100);
 };
 
 // --- Rendering & UI Updates ---
 const renderText = () => {
-    textContentWrapper.innerHTML = '';
+    // Clear previous content but preserve the caret element
+    while (textContentWrapper.childNodes.length > 1) {
+        textContentWrapper.removeChild(textContentWrapper.lastChild);
+    }
+
     const fragment = document.createDocumentFragment();
     originalText.split('').forEach((char, index) => {
         const charEl = document.createElement('span');
@@ -689,47 +729,17 @@ const renderText = () => {
         fragment.appendChild(charEl);
     });
     textContentWrapper.appendChild(fragment);
-    updateTextScroll();
+    updateTextAndCaret();
 };
 
-const updateCaretPosition = () => {
-    const allChars = textContentWrapper.querySelectorAll('.char');
-    let targetChar = allChars[typedText.length];
-    
-    if (typedText.length >= originalText.length) {
-        targetChar = allChars[originalText.length - 1];
-    }
-    
-    if (!targetChar && allChars.length === 0) {
-        caret.style.left = '0px';
-        caret.style.top = '0px';
-        caret.style.height = '1.2rem'; 
-        return;
-    }
-    
-    const containerRect = textContentWrapper.getBoundingClientRect();
+const updateTextAndCaret = () => {
+    const caret = D('caret');
+    // Apply caret style classes
+    caret.className = '';
+    caret.classList.add(settings.caretStyle);
+    if (settings.smoothCaret) caret.classList.add('smooth');
 
-    if(typedText.length >= originalText.length && targetChar) {
-        const lastCharRect = targetChar.getBoundingClientRect();
-        caret.style.left = `${lastCharRect.right - containerRect.left}px`;
-        caret.style.top = `${lastCharRect.top - containerRect.top}px`;
-    } else if (targetChar) {
-        const charRect = targetChar.getBoundingClientRect();
-        caret.style.left = `${charRect.left - containerRect.left}px`;
-        caret.style.top = `${charRect.top - containerRect.top}px`;
-    }
-    
-    const charHeight = targetChar ? targetChar.offsetHeight : 28; // Default height
-    caret.style.height = `${charHeight}px`;
 
-    if (settings.caretStyle === 'underline') {
-        caret.style.top = `${parseFloat(caret.style.top) + charHeight - 4}px`;
-    }
-    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : '';
-};
-
-const updateTextScroll = () => {
-    // Set class for text wrapping behavior
     textContentWrapper.className = 'text-content-wrapper';
     if (settings.textDisplayMode === 'static') {
         textContentWrapper.classList.add('static');
@@ -738,14 +748,39 @@ const updateTextScroll = () => {
     }
     
     const allChars = textContentWrapper.querySelectorAll('.char');
-    const targetChar = allChars[typedText.length];
+    let targetChar = allChars[typedText.length];
+
+    // --- Caret Positioning ---
+    // Fix: This condition was causing an error on reset. Added typedText.length > 0 to prevent it.
+    if (typedText.length > 0 && typedText.length >= originalText.length && allChars.length > 0) {
+        targetChar = allChars[originalText.length - 1];
+        if (targetChar) { // Ensure targetChar is not undefined
+          caret.style.left = `${targetChar.offsetLeft + targetChar.offsetWidth}px`;
+          caret.style.top = `${targetChar.offsetTop}px`;
+        }
+    } else if (targetChar) {
+        caret.style.left = `${targetChar.offsetLeft}px`;
+        caret.style.top = `${targetChar.offsetTop}px`;
+    } else {
+        caret.style.left = '0px';
+        caret.style.top = '0px';
+    }
+    
+    const charHeight = targetChar ? targetChar.offsetHeight : 28;
+    caret.style.height = `${charHeight}px`;
+
+    if (settings.caretStyle === 'underline') {
+        caret.style.top = `${parseFloat(caret.style.top) + charHeight - 3}px`;
+    }
+    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : '';
+
+    // --- Text Scrolling ---
     if (!targetChar) {
         textContentWrapper.style.transform = 'translate(0px, 0px)';
         return;
     }
-
+    
     if (settings.textDisplayMode === 'static') {
-        // Vertical scrolling logic
         const lineHeight = targetChar.offsetHeight;
         const scrollOffset = targetChar.offsetTop;
         const containerHeight = textDisplayContainer.clientHeight;
@@ -754,24 +789,14 @@ const updateTextScroll = () => {
         targetScrollY = Math.max(0, Math.min(targetScrollY, maxScroll));
         textContentWrapper.style.transform = `translateY(-${targetScrollY}px)`;
     } else {
-        // Horizontal scrolling logic
-        let scrollTargetElement = targetChar;
-        if (settings.textDisplayMode === 'scroll-word') {
-            let currentIdx = typedText.length;
-            while (currentIdx > 0 && originalText[currentIdx - 1] !== ' ') {
-                currentIdx--;
-            }
-            scrollTargetElement = allChars[currentIdx] || targetChar;
-        }
+        // Horizontal scroll logic
+        const containerCenter = textDisplayContainer.clientWidth / 2;
+        const caretLeft = parseFloat(caret.style.left) || 0;
+        const caretWidth = caret.offsetWidth;
+        const caretCenter = caretLeft + (caretWidth / 2);
 
-        const containerWidth = textDisplayContainer.clientWidth;
-        const targetPosition = containerWidth / 4; // Scroll to 1/4th from the left
-        const scrollOffset = scrollTargetElement.offsetLeft;
-
-        let targetScrollX = scrollOffset - targetPosition;
-        targetScrollX = Math.max(0, targetScrollX); // Don't scroll left past the beginning
-        
-        textContentWrapper.style.transform = `translateX(-${targetScrollX}px)`;
+        let targetX = containerCenter - caretCenter;
+        textContentWrapper.style.transform = `translateX(${targetX}px)`;
     }
 };
 
@@ -851,25 +876,38 @@ const pressKey = (keyCode) => {
 const handleKeyPress = (e) => {
     if (e.key === 'Tab' || e.key === 'Escape') {
         e.preventDefault();
-        restartBtn.focus();
+        if (isTestActive) {
+            pauseTest();
+        }
         return;
     }
     const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
     
     if (!isTestActive) {
+        // This block handles starting or resuming a test
         if (e.key.length !== 1 && e.key !== 'Backspace') return;
+        
         isTestActive = true;
-        startTime = Date.now();
+        if (!startTime) { // If it's a brand new start
+            startTime = Date.now();
+        } else { // Resuming from a pause, adjust start time
+             const pauseDuration = Date.now() - lastTypedTime;
+             startTime += pauseDuration;
+        }
+
         statTimer = setInterval(updateStats, 200);
         logo.classList.add('hidden');
         statsContainer.classList.remove('hidden');
         inTestStats.classList.remove('hidden');
         modeControls.classList.add('hidden');
-        restartBtn.classList.add('visible');
-        caret.style.opacity = '1';
+        textDisplayContainer.style.opacity = '1';
+        D('caret').style.opacity = '1';
     }
     
+    lastTypedTime = Date.now();
+    resetInactivityTimer();
+
     pressKey(e.code);
     e.preventDefault();
 
@@ -888,7 +926,6 @@ const handleKeyPress = (e) => {
     }
 
     renderText();
-    updateCaretPosition();
     if (testConfig.mode !== 'time' && testConfig.mode !== 'zen' && typedText.length >= originalText.length) {
         completeTest();
     }
@@ -901,15 +938,11 @@ const applySettings = () => {
     document.documentElement.style.setProperty('--main-font', settings.font);
     document.documentElement.style.setProperty('--key-unit-width', `${settings.keyboardSize}rem`);
     
-    caret.className = '';
-    caret.classList.add(settings.caretStyle);
-    if (settings.smoothCaret) caret.classList.add('smooth');
-
     keyboardContainer.classList.toggle('hidden', settings.keyboard === 'hidden');
     if (settings.keyboard !== 'hidden') {
         renderKeyboard(settings.keyboard);
     }
-    updateTextScroll(); // Apply text style
+    updateTextAndCaret(); // Apply text style & caret
 };
 
 const saveSettings = () => {
@@ -1034,7 +1067,7 @@ document.addEventListener('DOMContentLoaded', () => {
     accentColorPicker.addEventListener('input', e => { settings.accent = e.target.value; document.documentElement.style.setProperty('--accent-color', settings.accent); });
     accentColorPicker.addEventListener('change', () => { saveSettings(); }); // Save on final selection
     fontTypeSelect.addEventListener('change', e => { settings.font = e.target.value; applySettings(); saveSettings(); });
-    caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); updateCaretPosition(); });
+    caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); });
     textDisplayModeSelect.addEventListener('change', e => { settings.textDisplayMode = e.target.value; applySettings(); saveSettings();});
     smoothCaretToggle.addEventListener('change', e => { settings.smoothCaret = e.target.checked; applySettings(); saveSettings(); });
     soundToggle.addEventListener('change', e => { settings.sound = e.target.checked; saveSettings(); if(settings.sound) setupSound(); });
@@ -1057,7 +1090,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', handleKeyPress);
     restartBtn.addEventListener('click', startTest);
     textDisplayContainer.addEventListener('click', () => document.body.focus());
-    window.addEventListener('resize', () => { updateCaretPosition(); updateTextScroll(); });
+    window.addEventListener('resize', () => { updateTextAndCaret(); });
 });
 </script>
 </body>
