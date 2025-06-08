@@ -22,7 +22,7 @@
             --text-primary: #f3f4f6;    /* Gray 100 */
             --text-secondary: #9ca3af;  /* Gray 400 */
             --text-muted: #4b5563;      /* Gray 600 */
-            --accent-color: #34d399;    /* Emerald 400 */
+            --accent-color: #BEB05B;      /* Default Gold/Yellow Accent */
             --border-color: #374151;    /* Gray 700 */
             --correct-color: var(--accent-color);
             --incorrect-color: #f87171;  /* Red 400 */
@@ -68,6 +68,42 @@
             --accent-color: #00FF41;
             --border-color: #1A1A1A;
             --incorrect-color: #FF0000;
+        }
+
+        body[data-theme="dracula"] {
+            --bg-primary: #282a36;
+            --bg-secondary: #44475a;
+            --bg-tertiary: #6272a4;
+            --text-primary: #f8f8f2;
+            --text-secondary: #bd93f9;
+            --text-muted: #6272a4;
+            --accent-color: #ff79c6;
+            --border-color: #44475a;
+            --incorrect-color: #ff5555;
+        }
+
+        body[data-theme="sunset"] {
+            --bg-primary: #2a273f;
+            --bg-secondary: #4f3a65;
+            --bg-tertiary: #754f7d;
+            --text-primary: #f8f8f2;
+            --text-secondary: #e0d2f7;
+            --text-muted: #9d8df1;
+            --accent-color: #ff8b94;
+            --border-color: #4f3a65;
+            --incorrect-color: #ff5555;
+        }
+
+        body[data-theme="forest"] {
+            --bg-primary: #2a3d34;
+            --bg-secondary: #3e5246;
+            --bg-tertiary: #5f7464;
+            --text-primary: #e0e0e0;
+            --text-secondary: #c0c0c0;
+            --text-muted: #8a9e91;
+            --accent-color: #aacc88;
+            --border-color: #3e5246;
+            --incorrect-color: #e87d7d;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -338,7 +374,7 @@
             transform: scale(0.9); display: flex; align-items: center; justify-content: center;
         }
         .restart-btn.visible { opacity: 1; visibility: visible; height: auto; transform: scale(1); }
-        .restart-btn:hover, .restart-btn:focus { color: var(--accent-color); transform: scale(1.1); outline: none; }
+        .restart-btn:hover, .restart-btn:focus { color: var(--accent-color); transform: scale(1.1) rotate(15deg); outline: none; }
         .restart-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
         /* --- FOOTER / KEYBOARD --- */
@@ -408,7 +444,7 @@
             <div class="logo">TapDance</div>
             <div class="settings-area">
                 <button class="settings-btn" id="settingsBtn" aria-label="Open settings">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.69-1.62-0.92L14.4,2.23C14.38,2,14.17,1.88,13.92,1.88h-3.84c-0.25,0-0.46,0.12-0.48,0.35L9.16,4.55c-0.59,0.23-1.12,0.54-1.62,0.92L5.16,4.51C4.95,4.42,4.69,4.49,4.58,4.7l-1.92,3.32C2.56,8.22,2.61,8.49,2.79,8.63l2.03,1.58C4.8,10.56,4.78,10.88,4.78,11.2c0,0.33,0.02,0.64,0.07,0.95l-2.03,1.58c-0.18,0.14-0.24,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03-0.69,1.62,0.92l0.43,2.32C9.54,21.88,9.75,22,10,22h3.84c0.25,0,0.46-0.12,0.48-0.35l0.43-2.32c0.59-0.23,1.12-0.54-1.62-0.92l2.39,0.96c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
                 </button>
                 <div class="settings-panel" id="settingsPanel">
                     <div class="setting">
@@ -418,11 +454,14 @@
                             <option value="latte">Latte</option>
                             <option value="ocean">Ocean</option>
                             <option value="matrix">Matrix</option>
+                            <option value="dracula">Dracula</option>
+                            <option value="sunset">Sunset</option>
+                            <option value="forest">Forest</option>
                         </select>
                     </div>
                      <div class="setting">
                         <label for="accentColor">Accent</label>
-                        <input type="color" id="accentColor" value="#34d399">
+                        <input type="color" id="accentColor" value="#BEB05B">
                     </div>
                     <div class="setting">
                         <label for="fontType">Font</label>
@@ -592,7 +631,7 @@ let testConfig = {
     includePunctuation: false, includeNumbers: false,
 };
 let settings = {
-    theme: 'dark', accent: '#34d399', font: "'Roboto Mono', monospace",
+    theme: 'dark', accent: '#BEB05B', font: "'Roboto Mono', monospace",
     caretStyle: 'line', smoothCaret: true, sound: false, keyboard: 'hidden',
     keyboardSize: 2.25, textDisplayMode: 'static',
 };
@@ -685,7 +724,9 @@ const resetTest = () => {
 
     logo.classList.remove('hidden');
     textDisplayContainer.style.opacity = '1';
-    textContentWrapper.innerHTML = `<div id="caret" class="line"></div><span class="char" style="color: var(--text-secondary)">Select a mode to begin...</span>`;
+    // Clear previous text, keeping the caret
+    textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
+    
     statsContainer.classList.add('hidden');
     inTestStats.classList.add('hidden');
     modeControls.classList.remove('hidden');
@@ -715,10 +756,8 @@ const completeTest = () => {
 
 // --- Rendering & UI Updates ---
 const renderText = () => {
-    // Clear previous content but preserve the caret element
-    while (textContentWrapper.childNodes.length > 1) {
-        textContentWrapper.removeChild(textContentWrapper.lastChild);
-    }
+    // A safer way to clear previous characters while keeping the caret element
+    textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
 
     const fragment = document.createDocumentFragment();
     originalText.split('').forEach((char, index) => {
@@ -739,7 +778,7 @@ const updateTextAndCaret = () => {
     if (!caret) return; // Guard against null caret
     
     // Apply caret style classes
-    caret.className = '';
+    caret.className = 'caret'; // Reset classes first
     caret.classList.add(settings.caretStyle);
     if (settings.smoothCaret) caret.classList.add('smooth');
 
@@ -764,18 +803,23 @@ const updateTextAndCaret = () => {
     } else if (targetChar) {
         caret.style.left = `${targetChar.offsetLeft}px`;
         caret.style.top = `${targetChar.offsetTop}px`;
-    } else {
+    } else if (allChars.length > 0) { // Position at the start if no text typed
+        caret.style.left = `${allChars[0].offsetLeft}px`;
+        caret.style.top = `${allChars[0].offsetTop}px`;
+    } else { // Fallback for empty text
         caret.style.left = '0px';
         caret.style.top = '0px';
     }
     
-    const charHeight = targetChar ? targetChar.offsetHeight : 28;
+    const charHeight = targetChar ? targetChar.offsetHeight : (parseFloat(getComputedStyle(textDisplayContainer).fontSize) * 1.2);
     caret.style.height = `${charHeight}px`;
 
     if (settings.caretStyle === 'underline') {
         caret.style.top = `${parseFloat(caret.style.top) + charHeight - 3}px`;
+        caret.style.height = `3px`;
     }
-    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : '';
+    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : (settings.caretStyle === 'line' ? '2px' : '');
+
 
     // --- Text Scrolling ---
     if (!targetChar && allChars.length === 0) {
@@ -784,7 +828,9 @@ const updateTextAndCaret = () => {
     }
     
     if (settings.textDisplayMode === 'static') {
+        if (!targetChar && allChars.length > 0) targetChar = allChars[0];
         if (!targetChar) return;
+
         const lineHeight = targetChar.offsetHeight;
         const scrollOffset = targetChar.offsetTop;
         const containerHeight = textDisplayContainer.clientHeight;
@@ -811,7 +857,8 @@ const updateStats = (isFinal = false) => {
     const minutes = elapsed / 60;
     
     const correctChars = typedText.split('').filter((c, i) => c === originalText[i]).length;
-    const wpm = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
+    // Prevent division by zero if test is very short
+    const wpm = minutes > 0.005 ? Math.round((correctChars / 5) / minutes) : 0;
     
     const accuracy = totalCharsTyped > 0 ? Math.round(((totalCharsTyped - totalErrors) / totalCharsTyped) * 100) : 100;
     
@@ -903,6 +950,8 @@ const handleKeyPress = (e) => {
     const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
     if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
     
+    if (originalText === '') return; // Don't start on empty text
+
     if (!isTestActive) {
         // This block handles starting or resuming a test
         if (e.key.length !== 1 && e.key !== 'Backspace') return;
@@ -915,7 +964,7 @@ const handleKeyPress = (e) => {
              startTime += pauseDuration;
         }
 
-        statTimer = setInterval(updateStats, 200);
+        statTimer = setInterval(updateStats, 250);
         logo.classList.add('hidden');
         statsContainer.classList.remove('hidden');
         inTestStats.classList.remove('hidden');
@@ -945,6 +994,8 @@ const handleKeyPress = (e) => {
     }
 
     renderText();
+    updateStats(); // Update stats immediately on keypress for responsiveness
+
     if (testConfig.mode !== 'time' && testConfig.mode !== 'zen' && typedText.length >= originalText.length) {
         completeTest();
     }
@@ -1067,7 +1118,7 @@ const updateSecondaryOptions = (mode, defaultValue) => {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initializeModeSelector();
-    startTest();
+    startTest(); // Start with a test loaded by default
     
     settingsBtn.addEventListener('click', e => {
         e.stopPropagation();
