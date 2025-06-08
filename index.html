@@ -142,7 +142,7 @@
             padding: 1rem;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Center vertically */
+            justify-content: space-between;
             align-items: center;
             gap: 1rem; 
         }
@@ -267,6 +267,7 @@
 
         /* --- MAIN CONTENT --- */
         .main-content-wrapper {
+            flex-grow: 1;
             display: flex;
             flex-direction: column;
             justify-content: center;
@@ -324,9 +325,10 @@
         .typing-area {
             display: flex; flex-direction: column; justify-content: center;
             align-items: center; gap: 1rem; width: 100%;
-            position: relative;
+            position: relative; /* Needed for mobile input positioning */
         }
         
+        /* ADDED: Invisible input for mobile keyboard */
         #mobileInput {
             position: absolute;
             top: 0;
@@ -336,9 +338,8 @@
             opacity: 0;
             border: none;
             padding: 0;
-            caret-color: transparent; 
+            caret-color: transparent; /* Hide the caret of the input field itself */
             background: transparent;
-            z-index: 3; /* Ensure it is on top of everything to be tappable */
         }
 
         /* In-Test Stats (live stats) */
@@ -361,6 +362,8 @@
             position: relative;
             cursor: text;
             transition: opacity 0.3s ease;
+            display: flex; /* Helps with vertical alignment */
+            align-items: center; /* Helps with vertical alignment */
         }
 
         .text-content-wrapper { 
@@ -374,7 +377,7 @@
         .char {
             position: relative;
             transition: color 0.2s ease;
-            color: var(--text-muted);
+            color: var(--text-muted); /* Untyped text is muted */
         }
         .char.correct { color: var(--text-primary); }
         .char.incorrect { color: var(--incorrect-color); background-color: rgba(248, 113, 113, 0.1); border-radius: 4px; }
@@ -385,7 +388,7 @@
             border-radius: 2px;
             opacity: 0;
             animation: blink 1s infinite;
-            z-index: 2;
+            z-index: 2; /* Ensure caret is above text */
         }
         #caret.line { width: 2px; background-color: var(--accent-color); }
         #caret.block { background-color: var(--accent-color); opacity: 0.3 !important; animation: none; }
@@ -469,44 +472,29 @@
         }
 
         @media (max-width: 768px) {
-            .container { padding: 1rem; justify-content: start; padding-top: 6rem; } /* MODIFIED: Adjust container layout */
+            .container { padding: 1rem; }
             .header { top: 1rem; left: 1rem; right: 1rem; }
-            .keyboard { display: none !important; }
+            .keyboard { display: none !important; } /* Hide keyboard on smaller screens */
 
             .test-mode-controls {
                 flex-direction: column;
                 align-items: stretch;
-                gap: 0.75rem;
+                gap: 1rem;
             }
             .mode-divider {
                 display: none;
             }
              .mode-btn {
-                padding: 0.7rem 1rem;
-                font-size: 0.9rem;
+                padding: 0.8rem 1rem;
+                font-size: 1rem;
                 min-height: 44px;
             }
         }
 
         @media (max-width: 480px) {
-            .container { padding-top: 5rem; }
             .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; }
-            
-            /* MODIFIED: Make mode bar more compact on small phones */
-            .test-mode-controls { 
-                padding: 0.25rem;
-                gap: 0.5rem;
-            }
-            .mode-group {
-                gap: 0.25rem;
-            }
-            .mode-btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.85rem;
-                min-height: 38px;
-            }
-
-            .stats { gap: 1rem; }
+            .test-mode-controls { font-size: 0.8rem; }
+            .stats { gap: 1.5rem; }
             .stat-value { font-size: 1.5rem; }
         }
 
@@ -527,7 +515,7 @@
                         <label for="themeSelect">Theme</label>
                         <select id="themeSelect">
                             <option value="dark">Dark</option>
-                            <option value="light">Light</option>
+                            <option value="light">Light</option> <!-- MODIFIED: Renamed -->
                             <option value="ocean">Ocean</option>
                             <option value="matrix">Matrix</option>
                             <option value="dracula">Dracula</option>
@@ -629,6 +617,7 @@
             </div>
 
             <div class="typing-area" id="typingArea">
+                 <!-- ADDED: Invisible input for mobile keyboard -->
                 <input type="text" id="mobileInput" autocapitalize="off" autocorrect="off" spellcheck="false" autocomplete="off">
                 <div class="in-test-stats hidden" id="inTestStats">
                     <span id="liveWPM" class="live-stat-wpm"></span>
@@ -670,8 +659,8 @@ const inTestStats = D('inTestStats');
 const liveWPMDisplay = D('liveWPM');
 const liveAccDisplay = D('liveAcc');
 const textDisplayContainer = D('textDisplayContainer');
-const typingArea = D('typingArea');
-const mobileInput = D('mobileInput');
+const typingArea = D('typingArea'); // MODIFIED
+const mobileInput = D('mobileInput'); // MODIFIED
 const modeDivider = D('modeDivider');
 
 // --- Settings Elements ---
@@ -801,7 +790,7 @@ const resetTest = () => {
     isTestComplete = false;
     originalText = '';
     typedText = '';
-    mobileInput.value = '';
+    mobileInput.value = ''; // MODIFIED
     startTime = null;
     lastTypedTime = null;
     statTimer = null;
@@ -830,7 +819,7 @@ const completeTest = () => {
     updateStats(true); 
     isTestActive = false;
     isTestComplete = true;
-    mobileInput.blur();
+    mobileInput.blur(); // MODIFIED
     logo.classList.remove('hidden');
     modeControls.classList.remove('hidden');
     restartBtn.classList.add('visible');
@@ -1244,4 +1233,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 </body>
-</html> 
+</html>
