@@ -106,6 +106,18 @@
             --incorrect-color: #e87d7d;
         }
 
+        body[data-theme="deepwoken"] {
+            --bg-primary: #1a1d1a;
+            --bg-secondary: #292e29;
+            --bg-tertiary: #3a3f3a;
+            --text-primary: #e0e0e0;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b706b;
+            --accent-color: #e0e0e0;
+            --border-color: #292e29;
+            --incorrect-color: #b33a3a;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
@@ -370,11 +382,34 @@
         .restart-btn {
             background: transparent; border: none; color: var(--text-secondary);
             font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
-            margin-top: 1rem; opacity: 0; visibility: hidden; height: 0;
+            margin-top: 1rem; opacity: 0; visibility: hidden;
             transform: scale(0.9); display: flex; align-items: center; justify-content: center;
+            width: 50px;
+            height: 0; /* Starts at 0, transitions to 50px */
+            border-radius: 50%;
         }
-        .restart-btn.visible { opacity: 1; visibility: visible; height: auto; transform: scale(1); }
-        .restart-btn:hover, .restart-btn:focus { color: var(--accent-color); transform: scale(1.1) rotate(15deg); outline: none; }
+        .restart-btn.visible { 
+            opacity: 1; 
+            visibility: visible; 
+            height: 50px; /* Match width for a circle */
+            transform: scale(1); 
+        }
+        
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 var(--accent-color);
+            }
+            100% {
+                box-shadow: 0 0 0 15px transparent;
+            }
+        }
+
+        .restart-btn:hover, .restart-btn:focus {
+            color: var(--accent-color);
+            transform: scale(1.1) rotate(15deg);
+            outline: none;
+            animation: pulse 1.5s infinite;
+        }
         .restart-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
         /* --- FOOTER / KEYBOARD --- */
@@ -444,7 +479,7 @@
             <div class="logo">TapDance</div>
             <div class="settings-area">
                 <button class="settings-btn" id="settingsBtn" aria-label="Open settings">
-                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
+                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.43 12.98c.04-.32.07-.64.07-.98s-.03-.66-.07-.98l2.11-1.65c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.3-.61-.22l-2.49 1c-.52-.4-1.08-.73-1.69-.98l-.38-2.65C14.46 2.18 14.25 2 14 2h-4c-.25 0-.46.18-.49.42l-.38 2.65c-.61.25-1.17.59-1.69-.98l-2.49-1c-.22-.08-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64l2.11 1.65c-.04.32-.07.65-.07.98s.03.66.07.98l-2.11 1.65c-.19.15-.24-.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1c.52.4 1.08.73 1.69.98l.38 2.65c.03.24.24.42.49.42h4c.25 0 .46-.18.49-.42l.38-2.65c.61-.25 1.17-.59 1.69-.98l2.49 1c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.65zM12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5z"/></svg>
                 </button>
                 <div class="settings-panel" id="settingsPanel">
                     <div class="setting">
@@ -457,6 +492,7 @@
                             <option value="dracula">Dracula</option>
                             <option value="sunset">Sunset</option>
                             <option value="forest">Forest</option>
+                            <option value="deepwoken">Deepwoken</option>
                         </select>
                     </div>
                      <div class="setting">
@@ -491,6 +527,13 @@
                         <label for="smoothCaretToggle">Smooth Caret</label>
                         <label class="toggle-switch">
                             <input type="checkbox" id="smoothCaretToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting">
+                        <label for="skipWordToggle">Skip Word on Space</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="skipWordToggle">
                             <span class="slider"></span>
                         </label>
                     </div>
@@ -594,6 +637,7 @@ const fontTypeSelect = D('fontType');
 const caretStyleSelect = D('caretStyleSelect');
 const textDisplayModeSelect = D('textDisplayModeSelect');
 const smoothCaretToggle = D('smoothCaretToggle');
+const skipWordToggle = D('skipWordToggle');
 const soundToggle = D('soundToggle');
 const keyboardTypeSelect = D('keyboardType');
 const keyboardSizeSlider = D('keyboardSizeSlider');
@@ -625,6 +669,8 @@ let statTimer = null;
 let inactivityTimer = null;
 let totalCharsTyped = 0;
 let totalErrors = 0;
+let justSkipped = false;
+let lastSkipInfo = null;
 
 let testConfig = {
     mode: 'words', value: 25,
@@ -632,7 +678,7 @@ let testConfig = {
 };
 let settings = {
     theme: 'dark', accent: '#BEB05B', font: "'Roboto Mono', monospace",
-    caretStyle: 'line', smoothCaret: true, sound: false, keyboard: 'hidden',
+    caretStyle: 'line', smoothCaret: true, skipWordOnSpace: true, sound: false, keyboard: 'hidden',
     keyboardSize: 2.25, textDisplayMode: 'static',
 };
 
@@ -721,6 +767,9 @@ const resetTest = () => {
     inactivityTimer = null;
     totalCharsTyped = 0;
     totalErrors = 0;
+    justSkipped = false;
+    lastSkipInfo = null;
+
 
     logo.classList.remove('hidden');
     textDisplayContainer.style.opacity = '1';
@@ -872,10 +921,13 @@ const updateStats = (isFinal = false) => {
 
         if (testConfig.mode === 'time') {
             const remaining = testConfig.value - elapsed;
-            timeDisplay.textContent = `${Math.ceil(remaining)}s`;
+            // The time display is now the live timer during the test.
+            // Let's find a different place or way to show it if needed.
+            // For now, let's keep the live WPM/Acc prominent.
+            // We can show the countdown in the main `timeDisplay` since that panel is hidden.
+            liveWPMDisplay.textContent = `${Math.ceil(remaining)}s | ${wpm} WPM`;
+
             if (remaining <= 0) completeTest();
-        } else {
-             timeDisplay.textContent = `${Math.round(elapsed)}s`;
         }
     }
 };
@@ -943,6 +995,8 @@ const handleKeyPress = (e) => {
         e.preventDefault();
         if (isTestActive) {
             pauseTest();
+        } else if (!isTestActive && !isTestComplete) {
+            startTest(); // Restart if paused
         }
         return;
     }
@@ -966,7 +1020,6 @@ const handleKeyPress = (e) => {
 
         statTimer = setInterval(updateStats, 250);
         logo.classList.add('hidden');
-        statsContainer.classList.remove('hidden');
         inTestStats.classList.remove('hidden');
         modeControls.classList.add('hidden');
         textDisplayContainer.style.opacity = '1';
@@ -975,26 +1028,66 @@ const handleKeyPress = (e) => {
     
     lastTypedTime = Date.now();
     resetInactivityTimer();
-
     pressKey(e.code);
     e.preventDefault();
 
     if (e.key === 'Backspace') {
-        playKeySound();
-        typedText = typedText.slice(0, -1);
-    } else if (typedText.length < originalText.length && e.key.length === 1) {
-        totalCharsTyped++;
-        if (e.key !== originalText[typedText.length]) {
-            totalErrors++;
-            playErrorSound();
-        } else {
-            playKeySound();
+        if (justSkipped) {
+            // Undo the word skip
+            const amount = lastSkipInfo.to - lastSkipInfo.from;
+            totalCharsTyped -= amount;
+            totalErrors -= amount;
+            typedText = typedText.substring(0, lastSkipInfo.from);
+            justSkipped = false;
+            lastSkipInfo = null;
+        } else if (typedText.length > 0) {
+            // Normal backspace
+            typedText = typedText.slice(0, -1);
+            justSkipped = false; 
         }
-        typedText += e.key;
+        playKeySound();
+    } 
+    else if (e.key.length === 1 && typedText.length < originalText.length) {
+        const isSkipAttempt = settings.skipWordOnSpace && e.key === ' ' && originalText[typedText.length] !== ' ';
+
+        if (isSkipAttempt) {
+            // Handle skipping the rest of the word
+            playErrorSound();
+            const skipFrom = typedText.length;
+            const nextSpaceIndex = originalText.indexOf(' ', skipFrom);
+            
+            const targetIndex = (nextSpaceIndex === -1) 
+                ? originalText.length // If no more spaces, skip to the very end
+                : nextSpaceIndex + 1; // Skip to the character after the space
+
+            const numToAdvance = targetIndex - skipFrom;
+            // Use a null character placeholder to mark skipped characters as incorrect
+            typedText += '\0'.repeat(numToAdvance); 
+            totalCharsTyped += numToAdvance;
+            totalErrors += numToAdvance;
+            
+            lastSkipInfo = { from: skipFrom, to: targetIndex };
+            justSkipped = true;
+        } else {
+            // Handle a normal character press
+            justSkipped = false;
+            totalCharsTyped++;
+            
+            if (e.key !== originalText[typedText.length]) {
+                totalErrors++;
+                playErrorSound();
+            } else {
+                playKeySound();
+            }
+            typedText += e.key;
+        }
+    } else {
+        // Any other key press that we don't handle explicitly resets the skip flag.
+        justSkipped = false;
     }
 
     renderText();
-    updateStats(); // Update stats immediately on keypress for responsiveness
+    updateStats(); 
 
     if (testConfig.mode !== 'time' && testConfig.mode !== 'zen' && typedText.length >= originalText.length) {
         completeTest();
@@ -1030,6 +1123,7 @@ const loadSettings = () => {
     caretStyleSelect.value = settings.caretStyle;
     textDisplayModeSelect.value = settings.textDisplayMode;
     smoothCaretToggle.checked = settings.smoothCaret;
+    skipWordToggle.checked = settings.skipWordOnSpace;
     soundToggle.checked = settings.sound;
     keyboardTypeSelect.value = settings.keyboard;
     keyboardSizeSlider.value = settings.keyboardSize;
@@ -1140,6 +1234,7 @@ document.addEventListener('DOMContentLoaded', () => {
     caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); });
     textDisplayModeSelect.addEventListener('change', e => { settings.textDisplayMode = e.target.value; applySettings(); saveSettings();});
     smoothCaretToggle.addEventListener('change', e => { settings.smoothCaret = e.target.checked; applySettings(); saveSettings(); });
+    skipWordToggle.addEventListener('change', e => { settings.skipWordOnSpace = e.target.checked; saveSettings(); });
     soundToggle.addEventListener('change', e => { settings.sound = e.target.checked; saveSettings(); if(settings.sound) setupSound(); });
     keyboardTypeSelect.addEventListener('change', e => { settings.keyboard = e.target.value; applySettings(); saveSettings(); });
 
