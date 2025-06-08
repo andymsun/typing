@@ -29,21 +29,21 @@
 
             --main-font: 'Roboto Mono', monospace;
             --ui-font: 'Inter', sans-serif;
-            --key-unit-width: 2.25rem; /* New smaller default size */
+            --key-unit-width: 2.25rem;
             --caret-transition-speed: 0.1s;
         }
 
         /* --- Theme Definitions --- */
-        body[data-theme="light"] { /* MODIFIED: Renamed from latte */
+        body[data-theme="light"] {
             --bg-primary: #eff1f5;
             --bg-secondary: #e6e9ef;
             --bg-tertiary: #dce0e8;
             --text-primary: #4c4f69;
             --text-secondary: #6c6f85;
             --text-muted: #9ca0b0;
-            --accent-color: #1e66f5; /* Blue */
+            --accent-color: #1e66f5;
             --border-color: #ccd0da;
-            --incorrect-color: #d20f39; /* Red */
+            --incorrect-color: #d20f39;
         }
         
         body[data-theme="ocean"] {
@@ -142,7 +142,7 @@
             padding: 1rem;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Center vertically */
+            justify-content: center;
             align-items: center;
             gap: 1rem; 
         }
@@ -338,7 +338,7 @@
             padding: 0;
             caret-color: transparent; 
             background: transparent;
-            z-index: 3; /* Ensure it is on top of everything to be tappable */
+            z-index: 3;
         }
 
         /* In-Test Stats (live stats) */
@@ -427,10 +427,8 @@
 
         /* --- FOOTER / KEYBOARD --- */
         .keyboard {
-            width: 100%; max-width: 900px; padding: 1rem 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease;
+            display: none;
         }
-        .keyboard.hidden { opacity: 0; visibility: hidden; height: 0; padding: 0; margin: 0; overflow: hidden; }
         .keyboard-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
         .key-gap {
              width: calc(var(--key-unit-width) * 2);
@@ -464,14 +462,22 @@
         .u-625 { width: calc(var(--key-unit-width) * 6.25); }
         
         /* --- Responsive Design --- */
+        @media (min-width: 1024px) {
+             .keyboard { display: block; }
+        }
+
         @media (max-width: 900px) {
             .text-display { font-size: 1.6rem; }
         }
 
         @media (max-width: 768px) {
-            .container { padding: 1rem; justify-content: start; padding-top: 6rem; } /* MODIFIED: Adjust container layout */
+            .container { 
+                justify-content: start; 
+                padding-top: 5rem;
+                padding-bottom: 2rem;
+                overflow-y: auto;
+            } 
             .header { top: 1rem; left: 1rem; right: 1rem; }
-            .keyboard { display: none !important; }
 
             .test-mode-controls {
                 flex-direction: column;
@@ -490,20 +496,19 @@
 
         @media (max-width: 480px) {
             .container { padding-top: 5rem; }
-            .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; }
+            .text-display { font-size: 1.3rem; line-height: 1.7; height: 100px; }
             
-            /* MODIFIED: Make mode bar more compact on small phones */
             .test-mode-controls { 
                 padding: 0.25rem;
-                gap: 0.5rem;
+                gap: 0.25rem;
             }
             .mode-group {
                 gap: 0.25rem;
             }
             .mode-btn {
-                padding: 0.4rem 0.8rem;
-                font-size: 0.85rem;
-                min-height: 38px;
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+                min-height: 36px;
             }
 
             .stats { gap: 1rem; }
@@ -969,11 +974,13 @@ const updateStats = (isFinal = false) => {
 
 const renderKeyboard = (layoutName) => {
     const layout = layouts[layoutName];
-    if (!layout) {
+    if (!layout || layoutName === 'hidden') {
         keyboardContainer.innerHTML = "";
+        keyboardContainer.style.display = "none";
         keyMap = {};
         return;
     }
+    keyboardContainer.style.display = "block";
     keyboardContainer.innerHTML = "";
     keyMap = {};
     layout.forEach(row => {
@@ -1010,11 +1017,10 @@ const pressKey = (keyCode) => {
     }
 };
 
-// --- MODIFIED: Event Handlers for Mobile and Desktop ---
 const processInput = () => {
     if (isTestComplete) return;
 
-    if (!isTestActive) {
+    if (!isTestActive && mobileInput.value.length > 0) {
         isTestActive = true;
         startTime = Date.now();
         statTimer = setInterval(updateStats, 250);
@@ -1030,17 +1036,18 @@ const processInput = () => {
 
     const currentInput = mobileInput.value;
     
-    // Play sound based on last character typed
-    if (currentInput.length > typedText.length) { // Character added
+    if (currentInput.length > typedText.length) {
         const lastChar = currentInput.slice(-1);
         const originalChar = originalText[currentInput.length - 1];
-        if(lastChar === originalChar) {
+        if (lastChar === originalChar) {
             playKeySound();
         } else {
             playErrorSound();
         }
-    } else { // Backspace
+    } else if (currentInput.length < typedText.length) {
         playKeySound();
+    } else if (currentInput.length === 0 && typedText.length === 0) {
+        playErrorSound();
     }
 
     typedText = currentInput;
@@ -1055,7 +1062,13 @@ const processInput = () => {
 };
 
 const handleKeyDown = (e) => {
-    pressKey(e.code); // Visual feedback for physical keyboard
+    pressKey(e.code);
+    
+    if (typedText.length === 0 && (e.key === 'Backspace' || e.key === ' ')) {
+        playErrorSound();
+        e.preventDefault();
+        return;
+    }
     
     if (e.key === 'Escape') {
         e.preventDefault();
@@ -1078,10 +1091,7 @@ const applySettings = () => {
     document.documentElement.style.setProperty('--main-font', settings.font);
     document.documentElement.style.setProperty('--key-unit-width', `${settings.keyboardSize}rem`);
     
-    keyboardContainer.classList.toggle('hidden', settings.keyboard === 'hidden');
-    if (settings.keyboard !== 'hidden') {
-        renderKeyboard(settings.keyboard);
-    }
+    renderKeyboard(settings.keyboard);
     updateTextAndCaret();
 };
 
@@ -1094,7 +1104,6 @@ const loadSettings = () => {
     if (saved) {
         settings = { ...settings, ...JSON.parse(saved) };
     }
-    // Handle rename from latte to light for returning users
     if (settings.theme === 'latte') {
         settings.theme = 'light';
         saveSettings();
@@ -1227,6 +1236,7 @@ document.addEventListener('DOMContentLoaded', () => {
     keyboardSizeSlider.addEventListener('change', () => { 
         saveSettings();
     });
+    
     resetKeyboardSizeBtn.addEventListener('click', () => {
         settings.keyboardSize = 2.25; 
         keyboardSizeSlider.value = settings.keyboardSize;
@@ -1234,14 +1244,22 @@ document.addEventListener('DOMContentLoaded', () => {
         saveSettings();
     });
     
-    // MODIFIED: Event listeners for unified input
     document.addEventListener('keydown', handleKeyDown);
     mobileInput.addEventListener('input', processInput);
-    typingArea.addEventListener('click', () => mobileInput.focus()); // Focus input on tap
+    
+    // MODIFIED: Restored event listener
+    textDisplayContainer.addEventListener('click', () => mobileInput.focus());
 
     restartBtn.addEventListener('click', startTest);
-    window.addEventListener('resize', () => { updateTextAndCaret(); });
+    window.addEventListener('resize', () => { 
+        updateTextAndCaret();
+        // MODIFIED: Ensure content is visible when mobile keyboard resizes window
+        if(document.activeElement === mobileInput) {
+            window.scrollTo(0, 0);
+            document.body.scrollTop = 0;
+        }
+    });
 });
 </script>
 </body>
-</html> 
+</html>
