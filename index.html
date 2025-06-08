@@ -342,15 +342,18 @@
         .text-display {
             width: 100%; font-size: 1.8rem; line-height: 2;
             font-family: var(--main-font); overflow: hidden;
-            max-height: 180px; /* ~3 lines */
+            height: 180px; /* MODIFIED: Set fixed height to prevent layout shifts */
             position: relative;
             cursor: text; /* Indicate this area is interactive */
             transition: opacity 0.3s ease;
+            display: flex; /* Added for vertical centering */
+            align-items: center; /* Added for vertical centering */
         }
 
         .text-content-wrapper { 
             position: relative;
             transition: transform 0.2s ease-out; 
+            width: 100%; /* Ensure wrapper takes full width */
         }
         .text-content-wrapper.static { white-space: normal; }
         .text-content-wrapper.scroll { white-space: nowrap; }
@@ -464,7 +467,7 @@
             .keyboard { display: none; } /* Hide keyboard on smaller screens for better experience */
         }
         @media (max-width: 480px) {
-            .text-display { font-size: 1.4rem; line-height: 1.8; max-height: 120px; }
+            .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; } /* MODIFIED */
             .test-mode-controls { font-size: 0.8rem; }
             .mode-btn { padding: 0.4rem 0.8rem; }
             .stats { gap: 1.5rem; }
@@ -846,8 +849,8 @@ const updateTextAndCaret = () => {
     if (typedText.length >= originalText.length && allChars.length > 0) {
         targetChar = allChars[originalText.length - 1];
         if (targetChar) { 
-          caret.style.left = `${targetChar.offsetLeft + targetChar.offsetWidth}px`;
-          caret.style.top = `${targetChar.offsetTop}px`;
+            caret.style.left = `${targetChar.offsetLeft + targetChar.offsetWidth}px`;
+            caret.style.top = `${targetChar.offsetTop}px`;
         }
     } else if (targetChar) {
         caret.style.left = `${targetChar.offsetLeft}px`;
@@ -877,16 +880,28 @@ const updateTextAndCaret = () => {
     }
     
     if (settings.textDisplayMode === 'static') {
-        if (!targetChar && allChars.length > 0) targetChar = allChars[0];
-        if (!targetChar) return;
-
-        const lineHeight = targetChar.offsetHeight;
-        const scrollOffset = targetChar.offsetTop;
+        // Vertical scroll for static mode
+        // This logic is now simpler because the parent container handles centering
+        const scrollOffset = textContentWrapper.offsetTop;
+        const targetOffset = textContentWrapper.querySelector('.char.correct:last-of-type')?.offsetTop || 0;
+        
+        let targetScrollY = targetOffset;
+        
+        // This logic remains to scroll the content up line by line as needed
+        const lineHeight = targetChar?.offsetHeight || charHeight;
+        const currentLineOffset = targetChar?.offsetTop || 0;
         const containerHeight = textDisplayContainer.clientHeight;
-        let targetScrollY = scrollOffset - (containerHeight / 2) + (lineHeight / 2);
-        const maxScroll = textContentWrapper.scrollHeight - containerHeight;
-        targetScrollY = Math.max(0, Math.min(targetScrollY, maxScroll));
-        textContentWrapper.style.transform = `translateY(-${targetScrollY}px)`;
+        const wrapperScrollHeight = textContentWrapper.scrollHeight;
+
+        if (wrapperScrollHeight > containerHeight) {
+            // Calculate how much to scroll to keep the current line visible
+            let scrollY = currentLineOffset - lineHeight; // Aim to show the line above
+            scrollY = Math.max(0, scrollY); // Don't scroll past the top
+            textContentWrapper.style.transform = `translateY(-${scrollY}px)`;
+        } else {
+            textContentWrapper.style.transform = 'translateY(0px)';
+        }
+
     } else {
         // Horizontal scroll logic
         const containerCenter = textDisplayContainer.clientWidth / 2;
