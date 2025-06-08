@@ -3,38 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TypeFlow - Typing Trainer</title>
+    <title>TapDance - Typing Trainer</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400;1,700&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&family=Source+Code+Pro:ital,wght@0,200..900;1,200..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono:wght@400;500&family=Courier+Prime:wght@400&family=Source+Code+Pro:wght@400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.7.77/Tone.js"></script>
+
     <style>
-        /* * --- General UI Enhancements ---
-         * - Softer, more zen color palette.
-         * - Increased spacing and padding for a less cluttered feel.
-         * - Subtle transitions and animations for a premium experience.
-         * - Replaced harsh borders with soft backgrounds and shadows.
-         * - Consistent SVG icons instead of emojis.
-         * - Improved typography and visual hierarchy.
+        /* * --- Design Philosophy ---
+        * Minimalist & Focused: Clean lines, generous spacing, and a focus on the core typing experience.
+        * Customizable: Users can tailor the look and feel with themes, caret styles, and more.
+        * Polished & Modern: Smooth transitions and a refined color palette create a premium feel.
         */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg-primary: #111827;      /* Gray 900 */
+            --bg-secondary: #1f2937;    /* Gray 800 */
+            --bg-tertiary: #374151;     /* Gray 700 */
+            --text-primary: #f3f4f6;    /* Gray 100 */
+            --text-secondary: #9ca3af;  /* Gray 400 */
+            --text-muted: #4b5563;      /* Gray 600 */
+            --accent-color: #34d399;    /* Emerald 400 */
+            --border-color: #374151;    /* Gray 700 */
+            --correct-color: var(--accent-color);
+            --incorrect-color: #f87171;  /* Red 400 */
+
+            --main-font: 'Roboto Mono', monospace;
+            --ui-font: 'Inter', sans-serif;
+            --key-unit-width: 2.75rem;
+            --caret-transition-speed: 0.1s;
         }
 
-        :root {
-            --accent-color: #2dd4bf; /* Teal accent */
-            --bg-primary: #0f172a;   /* Slate 900 */
-            --bg-secondary: #1e293b; /* Slate 800 */
-            --text-primary: #e2e8f0; /* Slate 200 */
-            --text-secondary: #94a3b8;/* Slate 400 */
-            --text-muted: #475569;   /* Slate 600 */
-            --border-color: #334155; /* Slate 700 */
-            --correct-color: var(--accent-color);
-            --incorrect-color: #f87171; /* Red 400 */
-            --main-font: 'Roboto Mono', monospace; /* Default to a clean mono font */
-            --key-unit-width: 2.5rem; 
+        /* --- Theme Definitions --- */
+        body[data-theme="latte"] {
+            --bg-primary: #eff1f5;
+            --bg-secondary: #e6e9ef;
+            --bg-tertiary: #dce0e8;
+            --text-primary: #4c4f69;
+            --text-secondary: #6c6f85;
+            --text-muted: #9ca0b0;
+            --accent-color: #1e66f5; /* Blue */
+            --border-color: #ccd0da;
+            --incorrect-color: #d20f39; /* Red */
         }
+        
+        body[data-theme="ocean"] {
+            --bg-primary: #0b1e3a;
+            --bg-secondary: #132d57;
+            --bg-tertiary: #1f4287;
+            --text-primary: #eff1f5;
+            --text-secondary: #a6b1e1;
+            --text-muted: #5269a3;
+            --accent-color: #89e0ff;
+            --border-color: #1f4287;
+            --incorrect-color: #ff6b6b;
+        }
+
+        body[data-theme="matrix"] {
+            --bg-primary: #000000;
+            --bg-secondary: #0D0D0D;
+            --bg-tertiary: #1A1A1A;
+            --text-primary: #00FF41;
+            --text-secondary: #00b32d;
+            --text-muted: #006419;
+            --accent-color: #00FF41;
+            --border-color: #1A1A1A;
+            --incorrect-color: #FF0000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         html, body {
             height: 100%;
@@ -43,10 +79,8 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: var(--ui-font);
             background-color: var(--bg-primary);
-            /* A more subtle gradient for a calmer background */
-            background-image: radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0) 30%);
             color: var(--text-primary);
             display: flex;
             justify-content: center;
@@ -57,24 +91,35 @@
         .container {
             width: 100%;
             height: 100%;
-            padding: 1.5rem;
+            padding: 2rem;
             display: flex;
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
+            gap: 2rem;
         }
 
-        /* --- SETTINGS --- */
-        .settings-area {
+        /* --- HEADER / SETTINGS --- */
+        .header {
             position: absolute;
-            top: 1.5rem;
-            right: 1.5rem;
+            top: 2rem;
+            left: 2rem;
+            right: 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
             z-index: 20;
+        }
+        
+        .logo {
+            font-weight: 600;
+            font-size: 1.25rem;
+            color: var(--text-secondary);
         }
 
         .settings-btn {
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
+            background: transparent;
+            border: none;
             color: var(--text-secondary);
             font-size: 1.25rem;
             width: 44px;
@@ -82,33 +127,22 @@
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.3s ease;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            display: flex; justify-content: center; align-items: center;
         }
-
-        /* Removed distracting rotation, added subtle scale and color change */
+        
         .settings-btn:hover {
             color: var(--accent-color);
-            border-color: var(--accent-color);
+            background-color: var(--bg-secondary);
             transform: scale(1.1);
         }
         
-        .settings-btn svg {
-            width: 20px;
-            height: 20px;
-            fill: currentColor;
-            transition: transform 0.4s ease;
-        }
+        .settings-btn svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.4s ease; }
+        .settings-btn.open svg { transform: rotate(30deg); }
 
-        .settings-btn.open svg {
-             transform: rotate(45deg);
-        }
-        
         .settings-panel {
-            display: none; 
+            display: none;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1.5rem;
             position: absolute;
             top: calc(100% + 10px);
             right: 0;
@@ -116,335 +150,202 @@
             padding: 1.5rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            width: 280px;
+            width: 300px;
             z-index: 10;
             box-shadow: 0 15px 35px rgba(0,0,0,0.25);
         }
         
-        .setting {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .setting { display: flex; justify-content: space-between; align-items: center; }
+        .setting label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;}
 
-        .setting label {
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-        }
-
-        .setting input[type="color"] {
-            -webkit-appearance: none;
-            -moz-appearance: none;
-            appearance: none;
-            width: 30px;
-            height: 30px;
-            border: none;
-            border-radius: 50%;
-            cursor: pointer;
-            background: none;
-        }
-        .setting input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
-        .setting input[type="color"]::-webkit-color-swatch { border: 1px solid var(--border-color); border-radius: 50%;}
-        
-        .setting select {
+        .setting select, .setting input[type="color"] {
             background: var(--bg-primary);
             color: var(--text-primary);
             border: 1px solid var(--border-color);
             padding: 0.5rem;
             border-radius: 6px;
             cursor: pointer;
-            width: 150px;
+            width: 140px;
+            font-family: var(--ui-font);
         }
+        
+        /* Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 24px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: var(--bg-tertiary);
+            transition: .3s;
+            border-radius: 24px;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px; width: 16px;
+            left: 4px; bottom: 4px;
+            background-color: var(--text-primary);
+            transition: .3s;
+            border-radius: 50%;
+        }
+        input:checked + .slider { background-color: var(--accent-color); }
+        input:checked + .slider:before { transform: translateX(16px); }
 
+        /* --- MAIN CONTENT --- */
         .main-content-wrapper {
             flex-grow: 1;
             display: flex;
             flex-direction: column;
-            justify-content: center; /* Center content vertically */
+            justify-content: center;
             align-items: center;
             width: 100%;
             max-width: 900px;
+            gap: 2rem;
+            margin-top: -4rem; /* Pull content up a bit */
         }
 
-        .typing-area {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            width: 100%;
-        }
-
-        /* --- STATS --- */
+        /* --- Stats (Results) --- */
         .stats {
-            display: flex;
-            gap: 2.5rem;
-            justify-content: center;
-            margin-bottom: 2rem; /* Give space between stats and mode controls */
-            transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
-            height: 60px; /* Increased height for better spacing */
+            display: flex; gap: 4rem; justify-content: center;
+            transition: opacity 0.3s ease, transform 0.3s ease;
             transform: translateY(20px);
+            height: 60px;
         }
-        
-        .stats.hidden {
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(0px);
-        }
+        .stats.hidden { opacity: 0; visibility: hidden; transform: translateY(0px); }
 
-        .stat {
-            background: none;
-            padding: 0;
-            text-align: center;
-            min-width: 80px;
-        }
+        .stat { text-align: center; }
+        .stat-value { font-size: 2rem; font-weight: 600; color: var(--accent-color); }
+        .stat-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
 
-        .stat-value {
-            font-size: 1.5rem; /* Larger value */
-            font-weight: 600;
-            color: var(--accent-color);
-        }
-
-        .stat-label {
-            font-size: 0.75rem; /* Smaller label */
-            color: var(--text-secondary);
-            margin-top: 0.25rem;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        /* --- TEST MODE CONTROLS --- */
+        /* --- Mode Controls --- */
         .test-mode-controls {
-            display: flex;
-            align-items: center;
+            display: flex; align-items: center; flex-wrap: wrap; justify-content: center;
             background-color: var(--bg-secondary);
-            padding: 0.5rem;
-            border-radius: 8px;
-            gap: 0.5rem;
-            margin-bottom: 2rem;
+            padding: 0.5rem; border-radius: 8px; gap: 0.5rem;
             transition: all 0.3s ease;
         }
+        .test-mode-controls.hidden { opacity: 0; visibility: hidden; transform: scale(0.95); }
+        .mode-group { display: flex; gap: 0.5rem; align-items: center; }
 
-        .test-mode-controls.hidden {
-            opacity: 0;
-            visibility: hidden;
-            transform: scale(0.95);
-        }
-        
-        .mode-group {
-            display: flex;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        
-        /* Removed dividers for a cleaner look */
         .mode-divider {
-            display: none;
+            width: 1px;
+            height: 24px;
+            background-color: var(--border-color);
+            margin: 0 0.5rem;
         }
 
         .mode-btn {
-            background: none;
-            color: var(--text-secondary);
-            border: none;
-            padding: 0.5rem 1rem; /* More padding */
-            border-radius: 6px;
-            font-size: 0.9rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
+            background: none; color: var(--text-secondary); border: none;
+            padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem;
+            cursor: pointer; transition: all 0.2s ease;
+            display: flex; align-items: center; gap: 0.5rem;
+            font-family: var(--ui-font); font-weight: 500;
         }
-
-        .mode-btn:hover {
-            color: var(--text-primary);
-            background-color: rgba(255, 255, 255, 0.05);
-        }
-
-        .mode-btn.active, .toggle-btn.active {
-            color: var(--bg-primary);
-            background-color: var(--accent-color);
-        }
+        .mode-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
+        .mode-btn.active { color: var(--bg-primary); background-color: var(--accent-color); }
+        .mode-btn.active:hover { background-color: var(--accent-color); filter: brightness(1.1); }
+        .mode-btn svg { width: 16px; height: 16px; fill: currentColor; }
         
-        .mode-btn.active:hover, .toggle-btn.active:hover {
-             background-color: var(--accent-color);
-             filter: brightness(1.1);
+        /* --- TYPING AREA --- */
+        .typing-area {
+            display: flex; flex-direction: column; justify-content: center;
+            align-items: center; gap: 1rem; width: 100%;
         }
 
-        .mode-btn svg, .toggle-btn svg {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-        }
-        
-        /* IN-TEST STATS (Progress Bar) */
+        /* In-Test Stats (live stats) */
         .in-test-stats {
-            color: var(--text-muted);
+            display: flex; gap: 2rem;
+            color: var(--text-secondary);
             font-family: var(--main-font);
-            font-size: 1rem; /* Larger for better visibility */
-            height: 24px;
-            margin-bottom: 1rem;
-            transition: opacity 0.3s ease;
+            font-size: 1.1rem;
+            height: 24px; transition: opacity 0.3s ease;
         }
+        .in-test-stats.hidden { opacity: 0; }
+        .live-stat-wpm { color: var(--accent-color); font-weight: 500; }
+        .live-stat-acc { font-weight: 500; }
 
-        .in-test-stats.hidden {
-            opacity: 0;
-        }
-
-        /* --- TEXT DISPLAY --- */
+        /* --- Text Display & Caret --- */
         .text-display {
-            background: none;
-            border: none;
-            padding: 0;
-            width: 100%;
-            font-size: 1.8rem; /* Slightly smaller for balance */
-            line-height: 2; /* Increased for zen/readability */
-            font-family: var(--main-font);
-            overflow: hidden; 
-            max-height: 175px; /* Adjust based on new line-height */
+            width: 100%; font-size: 1.8rem; line-height: 2;
+            font-family: var(--main-font); overflow: hidden;
+            max-height: 180px; /* ~3 lines */
             position: relative;
+            cursor: text; /* Indicate this area is interactive */
         }
 
-        /* Fading effect for multi-line text */
-        .text-display.static-fade::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            height: 50%;
-            background: linear-gradient(to bottom, transparent 0%, var(--bg-primary) 90%);
-            pointer-events: none;
-        }
-
-        .text-content-wrapper {
-            transition: transform 0.2s ease-out;
-        }
-        
-        .text-content-wrapper.static {
-            white-space: normal;
-        }
-        
-        .text-content-wrapper.scroll {
-              white-space: nowrap;
-        }
-
-        .word {
-            display: inline-block;
-        }
+        .text-content-wrapper { transition: transform 0.2s ease-out; }
+        .text-content-wrapper.static { white-space: normal; }
+        .text-content-wrapper.scroll { white-space: nowrap; }
 
         .char {
             position: relative;
-            transition: all 0.2s ease;
-            color: var(--text-secondary); /* Un-typed text is now more muted */
+            transition: color 0.2s ease;
+            color: var(--text-muted); /* Untyped text is muted */
         }
+        .char.correct { color: var(--text-primary); }
+        .char.incorrect { color: var(--incorrect-color); background-color: rgba(248, 113, 113, 0.1); border-radius: 4px; }
 
-        .char.correct { color: var(--text-primary); } /* Correct is the default primary text color */
-        .char.incorrect { color: var(--incorrect-color); text-decoration: underline; text-decoration-thickness: 2px;}
-        .char.incorrect.space { background-color: rgba(248, 113, 113, 0.15); border-radius: 4px; }
-        .char.current { 
-            background: var(--accent-color); 
-            color: var(--bg-primary); 
-            border-radius: 4px; 
+        #caret {
+            position: absolute;
+            transition: left var(--caret-transition-speed) ease, top var(--caret-transition-speed) ease;
+            border-radius: 2px;
+            opacity: 0;
+            animation: blink 1s infinite;
         }
-        .loading-animation { color: var(--text-secondary); font-style: italic; padding: 1rem; }
+        #caret.line { width: 2px; background-color: var(--accent-color); }
+        #caret.block { background-color: var(--accent-color); opacity: 0.3 !important; animation: none; }
+        #caret.underline { height: 3px; background-color: var(--accent-color); }
+        
+        #caret.smooth { transition: left 0.1s linear, top 0.1s linear; }
 
-        /* --- RESTART BUTTON --- */
+        @keyframes blink { 50% { opacity: 1; } }
+
+        /* --- Restart Button --- */
         .restart-btn {
-            background: none;
-            border: none;
-            color: var(--text-secondary);
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-top: 2rem;
-            opacity: 0;
-            visibility: hidden;
-            height: 0;
-            transform: scale(0.9);
+            background: transparent; border: none; color: var(--text-secondary);
+            font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
+            margin-top: 1rem; opacity: 0; visibility: hidden; height: 0;
+            transform: scale(0.9); display: flex; align-items: center; justify-content: center;
         }
-        
-        .restart-btn.visible {
-            opacity: 1;
-            visibility: visible;
-            height: auto;
-            transform: scale(1);
-        }
-        
-        /* Removed rotation for a calmer effect */
-        .restart-btn:hover {
-            color: var(--accent-color);
-            transform: scale(1.1);
-        }
-        
-        /* Focus state for tab navigation */
-        .restart-btn:focus-visible {
-            outline: 2px solid var(--accent-color);
-            outline-offset: 4px;
-            border-radius: 50%;
-            color: var(--accent-color);
-        }
+        .restart-btn.visible { opacity: 1; visibility: visible; height: auto; transform: scale(1); }
+        .restart-btn:hover { color: var(--accent-color); transform: scale(1.1); }
+        .restart-btn svg { width: 32px; height: 32px; fill: currentColor; }
 
-        .restart-btn svg {
-            width: 28px;
-            height: 28px;
-            fill: currentColor;
-        }
-        
-
-        /* --- KEYBOARD --- */
+        /* --- FOOTER / KEYBOARD --- */
         .keyboard {
-            width: 100%;
-            max-width: 900px; /* Match main content */
-            padding: 0.5rem 0 1rem 0;
-            transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease, padding 0.3s ease, margin 0.3s ease;
+            width: 100%; max-width: 900px; padding: 1rem 0;
+            transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease;
         }
-
-        .keyboard.hidden {
-            opacity: 0;
-            visibility: hidden;
-            height: 0;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-        }
-
-        .keyboard-row {
-            display: flex;
-            justify-content: center;
-            gap: 0.5rem; 
-            margin-bottom: 0.5rem;
-        }
-
-        .key-gap {
+        .keyboard.hidden { opacity: 0; visibility: hidden; height: 0; padding: 0; margin: 0; overflow: hidden; }
+        .keyboard-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+         .key-gap {
              width: calc(var(--key-unit-width) * 2);
              flex-shrink: 0;
         }
-
         .key {
             background-color: var(--bg-secondary);
             border: 1px solid var(--border-color);
-            border-bottom-width: 3px; /* Subtle 3D effect */
+            border-bottom-width: 3px;
             border-radius: 6px;
             height: calc(var(--key-unit-width) * 1.1);
             display: flex; align-items: center; justify-content: center;
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-            transition: all 0.1s ease;
-            cursor: default;
-            font-family: var(--main-font);
-            flex-shrink: 0;
+            font-size: 0.8rem; color: var(--text-secondary);
+            transition: all 0.1s ease; cursor: default;
+            font-family: var(--main-font); flex-shrink: 0;
         }
-
         .key.pressed {
             background: var(--accent-color); color: var(--bg-primary);
-            border-color: var(--accent-color); 
-            transform: translateY(2px); /* Press down effect */
+            border-color: var(--accent-color);
+            transform: translateY(2px);
             border-bottom-width: 1px;
         }
-        
+        .key .special-text { font-size: 0.65rem; }
         .u-100 { width: var(--key-unit-width); }
         .u-125 { width: calc(var(--key-unit-width) * 1.25); }
         .u-150 { width: calc(var(--key-unit-width) * 1.5); }
@@ -453,755 +354,631 @@
         .u-225 { width: calc(var(--key-unit-width) * 2.25); }
         .u-275 { width: calc(var(--key-unit-width) * 2.75); }
         .u-625 { width: calc(var(--key-unit-width) * 6.25); }
-        .u-space-split-left { width: calc(var(--key-unit-width) * 2.75); }
-        .u-space-split-right { width: calc(var(--key-unit-width) * 3.5); }
-
-        .key .special-text { font-size: 0.65rem; }
         
+        /* --- Responsive Design --- */
         @media (max-width: 900px) {
-            :root { --key-unit-width: 2rem; }
+            :root { --key-unit-width: 2.25rem; }
             .text-display { font-size: 1.6rem; }
         }
-
         @media (max-width: 768px) {
             .container { padding: 1rem; }
-             :root { --key-unit-width: 1.5rem; }
-            .settings-area { top: 1rem; right: 1rem; }
-            .stats { gap: 1.5rem; }
-            .test-mode-controls {
-                flex-wrap: wrap;
-                justify-content: center;
-            }
+            .header { top: 1rem; left: 1rem; right: 1rem; }
+            .main-content-wrapper { margin-top: 0; }
+            :root { --key-unit-width: 1.8rem; }
+            .test-mode-controls { justify-content: center; }
+            .keyboard { display: none; } /* Hide keyboard on smaller screens for better experience */
         }
-         @media (max-width: 480px) {
-             :root { --key-unit-width: 1rem; }
-             .key .special-text { display: none; }
-             .text-display { font-size: 1.4rem; }
-         }
+        @media (max-width: 480px) {
+             .text-display { font-size: 1.4rem; line-height: 1.8; max-height: 120px; }
+             .test-mode-controls { font-size: 0.8rem; }
+             .mode-btn { padding: 0.4rem 0.8rem; }
+             .stats { gap: 1.5rem; }
+             .stat-value { font-size: 1.5rem; }
+        }
 
     </style>
 </head>
-<body>
+<body data-theme="dark">
     <div class="container">
-        <div class="settings-area">
-             <!-- Replaced emoji with a cleaner SVG icon -->
-            <button class="settings-btn" id="settingsBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.479,10.092,17.2,12.37,19.479,14.65a1,1,0,0,0,1.414-1.414L18.62,12.37l2.273-2.273a1,1,0,0,0-1.414-1.414Zm-4.9,4.9a1,1,0,0,0-1.414,1.414l2.273,2.273-2.273,2.273a1,1,0,0,0,1.414,1.414L17.2,19.489l2.273,2.273a1,1,0,0,0,1.414-1.414L18.62,18.076Zm-10.024-5a1,1,0,0,0-1.414-1.414L.868,12.37,3.141,14.65a1,1,0,0,0,1.414-1.414L2.282,12.37l2.273-2.273ZM6.828,18.076,4.555,15.8a1,1,0,0,0-1.414,1.414L5.414,19.489.868,24.035a1,1,0,0,0,1.414,1.414l4.546-4.546-2.273-2.273A1,1,0,0,0,6.828,18.076ZM12.035.868,7.489,5.414,9.762,7.687a1,1,0,1,0,1.414-1.414L8.9,3.993l4.546-4.546A1,1,0,0,0,12.035.868Z"/></svg>
-            </button>
-            <div class="settings-panel" id="settingsPanel">
-                 <div class="setting">
-                     <label for="accentColor">Theme</label>
-                     <input type="color" id="accentColor" value="#2dd4bf">
-                 </div>
-                 <div class="setting">
-                     <label for="textDisplayMode">Text Display</label>
-                     <select id="textDisplayMode">
-                         <option value="static">Static</option>
-                         <option value="scroll">Scroll</option>
-                     </select>
-                 </div>
-                 <div class="setting">
-                     <label for="keyboardType">Keyboard</label>
-                     <select id="keyboardType">
-                         <option value="hidden">Hidden</option>
-                         <option value="full">Full</option>
-                         <option value="no-numrow">No Numrow</option>
-                         <option value="split">Split</option>
-                     </select>
-                 </div>
-                 <div class="setting">
-                     <label for="fontType">Font</label>
-                     <select id="fontType">
-                         <option value="'Roboto Mono', monospace">Roboto Mono</option>
-                         <option value="'Courier Prime', monospace">Courier Prime</option>
-                         <option value="'Source Code Pro', monospace">Source Code Pro</option>
-                     </select>
-                 </div>
-                 <div class="setting">
-                     <label for="codingLanguage">Language</label>
-                     <select id="codingLanguage">
-                         <option value="python">Python</option>
-                         <option value="javascript">JavaScript</option>
-                         <option value="java">Java</option>
-                         <option value="c++">C++</option>
-                         <option value="rust">Rust</option>
-                     </select>
-                 </div>
+        <header class="header">
+            <div class="logo">TapDance</div>
+            <div class="settings-area">
+                <button class="settings-btn" id="settingsBtn" aria-label="Open settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19.14,12.94c0.04-0.3,0.06-0.61,0.06-0.94c0-0.32-0.02-0.64-0.07-0.94l2.03-1.58c0.18-0.14,0.23-0.41,0.12-0.61l-1.92-3.32c-0.12-0.22-0.37-0.29-0.59-0.22l-2.39,0.96c-0.5-0.38-1.03-0.69-1.62-0.92L14.4,2.23C14.38,2,14.17,1.88,13.92,1.88h-3.84c-0.25,0-0.46,0.12-0.48,0.35L9.16,4.55c-0.59,0.23-1.12,0.54-1.62,0.92L5.16,4.51C4.95,4.42,4.69,4.49,4.58,4.7l-1.92,3.32C2.56,8.22,2.61,8.49,2.79,8.63l2.03,1.58C4.8,10.56,4.78,10.88,4.78,11.2c0,0.33,0.02,0.64,0.07,0.95l-2.03,1.58c-0.18,0.14-0.24,0.41-0.12,0.61l1.92,3.32c0.12,0.22,0.37,0.29,0.59,0.22l2.39-0.96c0.5,0.38,1.03,0.69,1.62,0.92l0.43,2.32C9.54,21.88,9.75,22,10,22h3.84c0.25,0,0.46-0.12,0.48-0.35l0.43-2.32c0.59-0.23,1.12-0.54,1.62-0.92l2.39,0.96c0.22,0.08,0.47,0.01,0.59-0.22l1.92-3.32c0.12-0.2,0.07-0.47-0.12-0.61L19.14,12.94z M12,15.6c-1.98,0-3.6-1.62-3.6-3.6s1.62-3.6,3.6-3.6s3.6,1.62,3.6,3.6S13.98,15.6,12,15.6z"/></svg>
+                </button>
+                <div class="settings-panel" id="settingsPanel">
+                    <div class="setting">
+                        <label for="themeSelect">Theme</label>
+                        <select id="themeSelect">
+                            <option value="dark">Dark</option>
+                            <option value="latte">Latte</option>
+                            <option value="ocean">Ocean</option>
+                            <option value="matrix">Matrix</option>
+                        </select>
+                    </div>
+                     <div class="setting">
+                        <label for="accentColor">Accent</label>
+                        <input type="color" id="accentColor" value="#34d399">
+                    </div>
+                    <div class="setting">
+                        <label for="fontType">Font</label>
+                        <select id="fontType">
+                            <option value="'Roboto Mono', monospace">Roboto Mono</option>
+                            <option value="'Source Code Pro', monospace">Source Code Pro</option>
+                            <option value="'Courier Prime', monospace">Courier Prime</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label for="caretStyleSelect">Caret Style</label>
+                        <select id="caretStyleSelect">
+                            <option value="line">Line</option>
+                            <option value="block">Block</option>
+                            <option value="underline">Underline</option>
+                        </select>
+                    </div>
+                    <div class="setting">
+                        <label for="smoothCaretToggle">Smooth Caret</label>
+                        <label class="toggle-switch">
+                            <input type="checkbox" id="smoothCaretToggle" checked>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <div class="setting">
+                        <label for="soundToggle">Typing Sound</label>
+                         <label class="toggle-switch">
+                            <input type="checkbox" id="soundToggle">
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                     <div class="setting">
+                        <label for="keyboardType">On-Screen Keyboard</label>
+                        <select id="keyboardType">
+                            <option value="hidden">Hidden</option>
+                            <option value="full">Full</option>
+                            <option value="no-numrow">No Numrow</option>
+                            <option value="split">Split</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content-wrapper">
+            <div class="stats hidden" id="stats">
+                <div class="stat">
+                    <div class="stat-value" id="wpm">0</div>
+                    <div class="stat-label">WPM</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="accuracy">100%</div>
+                    <div class="stat-label">Accuracy</div>
+                </div>
+                <div class="stat">
+                    <div class="stat-value" id="time">0s</div>
+                    <div class="stat-label">Time</div>
+                </div>
+            </div>
+            
+            <div class="test-mode-controls" id="testModeControls">
+                <div class="mode-group" id="extraOptionsGroup"></div>
+                <div class="mode-divider" id="modeDivider"></div>
+                <div class="mode-group" id="primaryModeGroup"></div>
+                <div class="mode-group" id="secondaryModeGroup"></div>
+            </div>
+
+            <div class="typing-area">
+                <div class="in-test-stats hidden" id="inTestStats">
+                    <span id="liveWPM" class="live-stat-wpm"></span>
+                    <span id="liveAcc" class="live-stat-acc"></span>
+                </div>
+                <div class="text-display" id="textDisplayContainer">
+                    <div class="text-content-wrapper" id="textContentWrapper"></div>
+                    <div id="caret" class="line"></div>
+                </div>
+                <button class="restart-btn" id="restartBtn" tabindex="-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,4C7.58,4 4,7.58 4,12s3.58,8 8,8 8-3.58 8-8-3.58-8-8-8z M16.5,17.9L12,15.4V9h1.5v5.5l3.8,2L16.5,17.9z"/></svg>
+                </button>
             </div>
         </div>
 
-        <div class="main-content-wrapper">
-             <div class="stats hidden" id="stats">
-                 <div class="stat">
-                     <div class="stat-value" id="wpm">0</div>
-                     <div class="stat-label">WPM</div>
-                 </div>
-                 <div class="stat">
-                     <div class="stat-value" id="accuracy">100%</div>
-                     <div class="stat-label">Accuracy</div>
-                 </div>
-                 <div class="stat">
-                     <div class="stat-value" id="time">0s</div>
-                     <div class="stat-label">Time</div>
-                 </div>
-             </div>
-            
-             <div class="test-mode-controls" id="testModeControls">
-                 <div class="mode-group" id="extraOptionsGroup">
-                 </div>
-                 <div class="mode-group" id="primaryModeGroup">
-                 </div>
-                 <div class="mode-group" id="secondaryModeGroup">
-                 </div>
-             </div>
-
-             <div class="typing-area">
-                 <div class="in-test-stats hidden" id="inTestStats"></div>
-                 <div class="text-display" id="textDisplayContainer">
-                     <div class="text-content-wrapper" id="textContentWrapper">
-                     </div>
-                 </div>
-                 <button class="restart-btn" id="restartBtn" tabindex="-1">
-                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
-                         <path fill-rule="evenodd" d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2z"/>
-                         <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466"/>
-                     </svg>
-                 </button>
-             </div>
-        </div>
-
-
-        <div class="keyboard hidden" id="keyboard">
-        </div>
+        <div class="keyboard" id="keyboard"></div>
     </div>
 
-    <script>
-        // --- DOM Elements ---
-        const textDisplayContainer = document.getElementById('textDisplayContainer');
-        const textContentWrapper = document.getElementById('textContentWrapper');
-        const statsContainer = document.getElementById('stats');
-        const wpmDisplay = document.getElementById('wpm');
-        const accuracyDisplay = document.getElementById('accuracy');
-        const timeDisplay = document.getElementById('time');
-        const settingsBtn = document.getElementById('settingsBtn');
-        const settingsPanel = document.getElementById('settingsPanel');
-        const modeControls = document.getElementById('testModeControls');
-        const extraOptionsGroup = document.getElementById('extraOptionsGroup');
-        const primaryModeGroup = document.getElementById('primaryModeGroup');
-        const secondaryModeGroup = document.getElementById('secondaryModeGroup');
-        const keyboardContainer = document.getElementById('keyboard');
-        const accentColorPicker = document.getElementById('accentColor');
-        const textDisplaySelect = document.getElementById('textDisplayMode');
-        const keyboardTypeSelect = document.getElementById('keyboardType');
-        const fontTypeSelect = document.getElementById('fontType');
-        const codingLanguageSelect = document.getElementById('codingLanguage');
-        const restartBtn = document.getElementById('restartBtn');
-        const inTestStats = document.getElementById('inTestStats');
+<script>
+// --- DOM Elements ---
+const D = (id) => document.getElementById(id);
+const textContentWrapper = D('textContentWrapper');
+const statsContainer = D('stats');
+const wpmDisplay = D('wpm');
+const accuracyDisplay = D('accuracy');
+const timeDisplay = D('time');
+const settingsBtn = D('settingsBtn');
+const settingsPanel = D('settingsPanel');
+const modeControls = D('testModeControls');
+const extraOptionsGroup = D('extraOptionsGroup');
+const primaryModeGroup = D('primaryModeGroup');
+const secondaryModeGroup = D('secondaryModeGroup');
+const keyboardContainer = D('keyboard');
+const restartBtn = D('restartBtn');
+const inTestStats = D('inTestStats');
+const liveWPMDisplay = D('liveWPM');
+const liveAccDisplay = D('liveAcc');
+const caret = D('caret');
+const textDisplayContainer = D('textDisplayContainer');
+const modeDivider = D('modeDivider');
 
-        // --- Data & State ---
-        const wordList = ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"];
-        const premadeQuotes = {
-            short: [
-                "The only way to do great work is to love what you do.",
-                "The journey of a thousand miles begins with a single step.",
-                "That which does not kill us makes us stronger.",
-                "Be yourself; everyone else is already taken."
-            ],
-            medium: [
-                "Success is not final, failure is not fatal: it is the courage to continue that counts.",
-                "The future belongs to those who believe in the beauty of their dreams.",
-                "It is our choices, Harry, that show what we truly are, far more than our abilities.",
-                "The two most important days in your life are the day you are born and the day you find out why."
-            ],
-            long: [
-                "In three words I can sum up everything I've learned about life: it goes on.",
-                "To be yourself in a world that is constantly trying to make you something else is the greatest accomplishment.",
-                "I have not failed. I've just found 10,000 ways that won't work. Many of life's failures are people who did not realize how close they were to success when they gave up."
-            ]
-        };
-        const premadeCodeSnippets = {
-            python: {
-                variables: [`name = "Alice"`, `age = 30`, `is_active = True`, `items = [1, 2, 3]`],
-                loops: [`for i in range(5):\n  print(i)`, `while count < 5:\n  count += 1`],
-                functions: [`def greet(name):\n  return f"Hello, {name}"`, `def add(a, b):\n  return a + b`]
-            },
-            javascript: {
-                variables: [`let name = "Bob";`, `const score = 100;`, `let isActive = false;`, `const items = [1, 2, 3];`],
-                loops: [`for (let i = 0; i < 5; i++) {\n  console.log(i);\n}`, `items.forEach(item => {\n  console.log(item);\n});`],
-                functions: [`const greet = (name) => {\n  return \`Hello, \${name}\`;\n}`, `function multiply(a, b) {\n  return a * b;\n}`]
-            },
-            java: {
-                variables: [`String name = "Charles";`, `int version = 11;`, `boolean isComplete = true;`],
-                loops: [`for (int i = 0; i < 5; i++) {\n  System.out.println(i);\n}`],
-                functions: [`public String greet(String name) {\n  return "Hello, " + name;\n}`]
-            },
-            'c++': {
-                variables: [`std::string name = "Diana";`, `int score = 95;`],
-                loops: [`for (int i = 0; i < 5; ++i) {\n  std::cout << i << std::endl;\n}`],
-                functions: [`int add(int a, int b) {\n  return a + b;\n}`]
-            },
-            rust: {
-                variables: [`let name = "Eve";`, `let mut count = 0;`],
-                loops: [`for i in 0..5 {\n  println!("{}", i);\n}`],
-                functions: [`fn greet(name: &str) -> String {\n  format!("Hello, {}", name)\n}`]
-            }
-        };
-        const punctuationList = ['.', ',', ';', "'", '?', '!'];
+// --- Settings Elements ---
+const themeSelect = D('themeSelect');
+const accentColorPicker = D('accentColor');
+const fontTypeSelect = D('fontType');
+const caretStyleSelect = D('caretStyleSelect');
+const smoothCaretToggle = D('smoothCaretToggle');
+const soundToggle = D('soundToggle');
+const keyboardTypeSelect = D('keyboardType');
 
-        const layouts = {
-             full: [[{t:'`',k:'Backquote',s:'u-100'},{t:'1',k:'Digit1',s:'u-100'},{t:'2',k:'Digit2',s:'u-100'},{t:'3',k:'Digit3',s:'u-100'},{t:'4',k:'Digit4',s:'u-100'},{t:'5',k:'Digit5',s:'u-100'},{t:'6',k:'Digit6',s:'u-100'},{t:'7',k:'Digit7',s:'u-100'},{t:'8',k:'Digit8',s:'u-100'},{t:'9',k:'Digit9',s:'u-100'},{t:'0',k:'Digit0',s:'u-100'},{t:'-',k:'Minus',s:'u-100'},{t:'=',k:'Equal',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-200'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
-             'no-numrow': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
-             split: [[{t:'Esc',k:'Escape',s:'u-100'},{t:'Q',k:'KeyQ',s:'u-100'},{t:'W',k:'KeyW',s:'u-100'},{t:'E',k:'KeyE',s:'u-100'},{t:'R',k:'KeyR',s:'u-100'},{t:'T',k:'KeyT',s:'u-100'},{t:'gap'},{t:'Y',k:'KeyY',s:'u-100'},{t:'U',k:'KeyU',s:'u-100'},{t:'I',k:'KeyI',s:'u-100'},{t:'O',k:'KeyO',s:'u-100'},{t:'P',k:'KeyP',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-150'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'A',k:'KeyA',s:'u-100'},{t:'S',k:'KeyS',s:'u-100'},{t:'D',k:'KeyD',s:'u-100'},{t:'F',k:'KeyF',s:'u-100'},{t:'G',k:'KeyG',s:'u-100'},{t:'gap'},{t:'H',k:'KeyH',s:'u-100'},{t:'J',k:'KeyJ',s:'u-100'},{t:'K',k:'KeyK',s:'u-100'},{t:'L',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-125'}],[{t:'Shift',k:'ShiftLeft',s:'u-175'},{t:'Z',k:'KeyZ',s:'u-100'},{t:'X',k:'KeyX',s:'u-100'},{t:'C',k:'KeyC',s:'u-100'},{t:'V',k:'KeyV',s:'u-100'},{t:'B',k:'KeyB',s:'u-100'},{t:'gap'},{t:'N',k:'KeyN',s:'u-100'},{t:'M',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-175'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-275'},{t:'gap'},{t:' ',k:'Space',s:'u-275'},{t:'Enter',k:'Enter',s:'u-125'},{t:'Alt',k:'AltRight',s:'u-125'}]]
-        };
+// --- Data & State ---
+const wordList = ["the", "be", "to", "of", "and", "a", "in", "that", "have", "I", "it", "for", "not", "on", "with", "he", "as", "you", "do", "at", "this", "but", "his", "by", "from", "they", "we", "say", "her", "she", "or", "an", "will", "my", "one", "all", "would", "there", "their", "what", "so", "up", "out", "if", "about", "who", "get", "which", "go", "me", "when", "make", "can", "like", "time", "no", "just", "him", "know", "take", "person", "into", "year", "your", "good", "some", "could", "them", "see", "other", "than", "then", "now", "look", "only", "come", "its", "over", "think", "also", "back", "after", "use", "two", "how", "our", "work", "first", "well", "way", "even", "new", "want", "because", "any", "these", "give", "day", "most", "us"];
+const punctuationList = ['.', ',', ';', "'", '?', '!'];
+const layouts = {
+    full: [[{t:'`',k:'Backquote',s:'u-100'},{t:'1',k:'Digit1',s:'u-100'},{t:'2',k:'Digit2',s:'u-100'},{t:'3',k:'Digit3',s:'u-100'},{t:'4',k:'Digit4',s:'u-100'},{t:'5',k:'Digit5',s:'u-100'},{t:'6',k:'Digit6',s:'u-100'},{t:'7',k:'Digit7',s:'u-100'},{t:'8',k:'Digit8',s:'u-100'},{t:'9',k:'Digit9',s:'u-100'},{t:'0',k:'Digit0',s:'u-100'},{t:'-',k:'Minus',s:'u-100'},{t:'=',k:'Equal',s:'u-100'},{t:'Backspace',k:'Backspace',s:'u-200'}],[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
+    'no-numrow': [[{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'},{t:'\\',k:'Backslash',s:'u-150'}],[{t:'Caps Lock',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'Enter',k:'Enter',s:'u-225'}],[{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],[{t:'Ctrl',k:'ControlLeft',s:'u-125'},{t:'Alt',k:'AltLeft',s:'u-125'},{t:' ',k:'Space',s:'u-625'},{t:'Alt',k:'AltRight',s:'u-125'},{t:'Ctrl',k:'ControlRight',s:'u-125'}]],
+    split: [[{t:'`',s:'u-100',k:'Backquote'},{t:'1',s:'u-100',k:'Digit1'},{t:'2',s:'u-100',k:'Digit2'},{t:'3',s:'u-100',k:'Digit3'},{t:'4',s:'u-100',k:'Digit4'},{t:'5',s:'u-100',k:'Digit5'},{t:'gap'},{t:'6',s:'u-100',k:'Digit6'},{t:'7',s:'u-100',k:'Digit7'},{t:'8',s:'u-100',k:'Digit8'},{t:'9',s:'u-100',k:'Digit9'},{t:'0',s:'u-100',k:'Digit0'},{t:'-',s:'u-100',k:'Minus'},{t:'=',s:'u-100',k:'Equal'}],
+            [{t:'Tab',k:'Tab',s:'u-150'},{t:'q',k:'KeyQ',s:'u-100'},{t:'w',k:'KeyW',s:'u-100'},{t:'e',k:'KeyE',s:'u-100'},{t:'r',k:'KeyR',s:'u-100'},{t:'t',k:'KeyT',s:'u-100'},{t:'gap'},{t:'y',k:'KeyY',s:'u-100'},{t:'u',k:'KeyU',s:'u-100'},{t:'i',k:'KeyI',s:'u-100'},{t:'o',k:'KeyO',s:'u-100'},{t:'p',k:'KeyP',s:'u-100'},{t:'[',k:'BracketLeft',s:'u-100'},{t:']',k:'BracketRight',s:'u-100'}],
+            [{t:'Caps',k:'CapsLock',s:'u-175'},{t:'a',k:'KeyA',s:'u-100'},{t:'s',k:'KeyS',s:'u-100'},{t:'d',k:'KeyD',s:'u-100'},{t:'f',k:'KeyF',s:'u-100'},{t:'g',k:'KeyG',s:'u-100'},{t:'gap'},{t:'h',k:'KeyH',s:'u-100'},{t:'j',k:'KeyJ',s:'u-100'},{t:'k',k:'KeyK',s:'u-100'},{t:'l',k:'KeyL',s:'u-100'},{t:';',k:'Semicolon',s:'u-100'},{t:'\'',k:'Quote',s:'u-100'},{t:'\\',k:'Backslash',s:'u-125'}],
+            [{t:'Shift',k:'ShiftLeft',s:'u-225'},{t:'z',k:'KeyZ',s:'u-100'},{t:'x',k:'KeyX',s:'u-100'},{t:'c',k:'KeyC',s:'u-100'},{t:'v',k:'KeyV',s:'u-100'},{t:'b',k:'KeyB',s:'u-100'},{t:'gap'},{t:'n',k:'KeyN',s:'u-100'},{t:'m',k:'KeyM',s:'u-100'},{t:',',k:'Comma',s:'u-100'},{t:'.',k:'Period',s:'u-100'},{t:'/',k:'Slash',s:'u-100'},{t:'Shift',k:'ShiftRight',s:'u-275'}],
+            [{t:' ',s:'u-275',k:'Space'},{t:'Backspace',s:'u-150',k:'Backspace'},{t:'gap'},{t:'Enter',s:'u-150',k:'Enter'},{t:' ',s:'u-275',k:'Space'}]]
+};
+const modeOptions = { time: [15, 30, 60, 120], words: [10, 25, 50, 100], quote: ['short', 'medium', 'long'], zen: [] };
 
-        const modeOptions = {
-            time: [15, 30, 60, 120],
-            words: [10, 25, 50, 100],
-            quote: ['short', 'medium', 'long'],
-            code: ['variables', 'loops', 'functions']
-        };
+let keyMap = {};
+let originalText = '';
+let typedText = '';
+let isTestActive = false;
+let isTestComplete = false;
+let startTime = null;
+let statTimer = null;
+let totalCharsTyped = 0;
+let totalErrors = 0;
 
-        let keyMap = {};
-        let originalText = '';
-        let typedText = '';
-        let isTestActive = false;
-        let isPaused = false;
-        let isTestComplete = false;
-        let startTime = null;
-        let statTimer = null;
-        let inactivityTimer = null;
-        let generationId = 0;
-        let totalCharsTyped = 0;
-        let totalErrors = 0;
-        let testConfig = {
-            mode: 'words', 
-            value: 25,
-            includePunctuation: false,
-            includeNumbers: false
-        };
+let testConfig = {
+    mode: 'words', value: 25,
+    includePunctuation: false, includeNumbers: false,
+};
+let settings = {
+    theme: 'dark', accent: '#34d399', font: "'Roboto Mono', monospace",
+    caretStyle: 'line', smoothCaret: true, sound: false, keyboard: 'hidden',
+};
 
-        // --- Core Functions ---
-        const generateWords = (count) => {
-            let words = new Array(count).fill(null).map(() => wordList[Math.floor(Math.random() * wordList.length)]);
-            
-            if(testConfig.includePunctuation) {
-                words = words.map((word, index) => {
-                    if(Math.random() < 0.25 && index < words.length -1) {
-                        return word + punctuationList[Math.floor(Math.random() * punctuationList.length)];
-                    }
-                    return word;
-                });
-            }
+// --- Sound Engine ---
+let synth;
+const setupSound = () => {
+    if (window.Tone && !synth) {
+        synth = new Tone.Synth({
+            oscillator: { type: 'sine' },
+            envelope: { attack: 0.005, decay: 0.1, sustain: 0.05, release: 0.1, },
+        }).toDestination();
+    }
+};
+const playKeySound = () => settings.sound && synth && synth.triggerAttackRelease('C5', '8n');
+const playErrorSound = () => settings.sound && synth && synth.triggerAttackRelease('C4', '8n', Tone.now(), 0.6);
 
-            if(testConfig.includeNumbers) {
-                 for (let i = 0; i < count * 0.2; i++) {
-                    const randomIndex = Math.floor(Math.random() * words.length);
-                    const randomNumber = Math.floor(Math.random() * 1000).toString();
-                    words.splice(randomIndex, 0, randomNumber);
-                 }
-            }
+// --- Core Test Logic ---
+const generateText = () => {
+    let newText = '';
+    const { mode, value } = testConfig;
+    if (mode === 'time') newText = generateWords(150);
+    else if (mode === 'words') newText = generateWords(value);
+    else if (mode === 'zen') newText = generateWords(300);
+    else if (mode === 'quote') {
+        const quotes = { short: "To be or not to be.", medium: "The quick brown fox jumps over the lazy dog.", long: "Success is not final, failure is not fatal: it is the courage to continue that counts."};
+        newText = quotes[value] || quotes.medium;
+    }
+    return newText;
+};
 
-            return words.join(' ');
-        };
-
-        const startTest = async () => {
-            const thisGenerationId = ++generationId;
-            await resetTest(thisGenerationId); 
-            if (thisGenerationId !== generationId) return;
-
-            isTestActive = true;
-            const { mode, value } = testConfig;
-            let newText = '';
-
-            if (mode === 'time') {
-                newText = generateWords(100); 
-            } else if (mode === 'words') {
-                 newText = generateWords(value);
-            } else if (mode === 'quote') {
-                const quoteCategory = premadeQuotes[value] || premadeQuotes.short;
-                newText = quoteCategory[Math.floor(Math.random() * quoteCategory.length)];
-            } else if (mode === 'code') {
-                const lang = codingLanguageSelect.value;
-                const snippetsForLang = premadeCodeSnippets[lang] || premadeCodeSnippets.javascript;
-                const snippetCategory = snippetsForLang[value] || snippetsForLang.variables;
-                newText = snippetCategory[Math.floor(Math.random() * snippetCategory.length)];
-            }
-            
-            if (thisGenerationId !== generationId) return;
-            originalText = newText;
-            renderText();
+const generateWords = (count) => {
+    let words = Array.from({ length: count }, () => wordList[Math.floor(Math.random() * wordList.length)]);
+    if (testConfig.includePunctuation) {
+        words = words.map((word, i) => (Math.random() < 0.2 && i < words.length - 1) ? word + punctuationList[Math.floor(Math.random() * punctuationList.length)] : word);
+    }
+    if (testConfig.includeNumbers) {
+        for (let i = 0; i < count * 0.15; i++) {
+            words.splice(Math.floor(Math.random() * words.length), 0, Math.floor(Math.random() * 1000).toString());
         }
+    }
+    return words.join(' ');
+};
 
-        const resetTest = async (callerGenerationId) => {
-            if (callerGenerationId && callerGenerationId !== generationId) {
+const startTest = () => {
+    resetTest();
+    originalText = generateText();
+    renderText();
+    updateCaretPosition();
+};
+
+const resetTest = () => {
+    if (statTimer) clearInterval(statTimer);
+    isTestActive = false;
+    isTestComplete = false;
+    originalText = '';
+    typedText = '';
+    startTime = null;
+    statTimer = null;
+    totalCharsTyped = 0;
+    totalErrors = 0;
+
+    textContentWrapper.innerHTML = `<span class="char" style="color: var(--text-secondary)">Select a mode to begin...</span>`;
+    statsContainer.classList.add('hidden');
+    inTestStats.classList.add('hidden');
+    modeControls.classList.remove('hidden');
+    restartBtn.classList.remove('visible');
+    caret.style.opacity = '1';
+    liveWPMDisplay.textContent = '';
+    liveAccDisplay.textContent = '';
+    updateTextScroll();
+};
+
+const completeTest = () => {
+    if (statTimer) clearInterval(statTimer);
+    updateStats(true); // Final update
+    isTestActive = false;
+    isTestComplete = true;
+    modeControls.classList.remove('hidden');
+    restartBtn.classList.add('visible');
+    statsContainer.classList.remove('hidden');
+    inTestStats.classList.add('hidden');
+    caret.style.opacity = '0';
+    setTimeout(() => restartBtn.focus(), 100);
+};
+
+// --- Rendering & UI Updates ---
+const renderText = () => {
+    textContentWrapper.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    originalText.split('').forEach((char, index) => {
+        const charEl = document.createElement('span');
+        charEl.className = 'char';
+        charEl.textContent = char;
+        if (index < typedText.length) {
+            charEl.classList.add(char === typedText[index] ? 'correct' : 'incorrect');
+        }
+        fragment.appendChild(charEl);
+    });
+    textContentWrapper.appendChild(fragment);
+    updateTextScroll();
+};
+
+const updateCaretPosition = () => {
+    const allChars = textContentWrapper.querySelectorAll('.char');
+    let targetChar = allChars[typedText.length];
+    
+    if (typedText.length >= originalText.length) {
+        targetChar = allChars[originalText.length - 1];
+    }
+    
+    if (!targetChar && allChars.length === 0) {
+        caret.style.left = '0px';
+        caret.style.top = '0px';
+        caret.style.height = '1.2rem'; 
+        return;
+    }
+    
+    const containerRect = textContentWrapper.getBoundingClientRect();
+
+    if(typedText.length >= originalText.length && targetChar) {
+        const lastCharRect = targetChar.getBoundingClientRect();
+        caret.style.left = `${lastCharRect.right - containerRect.left}px`;
+        caret.style.top = `${lastCharRect.top - containerRect.top}px`;
+    } else if (targetChar) {
+        const charRect = targetChar.getBoundingClientRect();
+        caret.style.left = `${charRect.left - containerRect.left}px`;
+        caret.style.top = `${charRect.top - containerRect.top}px`;
+    }
+    
+    const charHeight = targetChar ? targetChar.offsetHeight : 28; // Default height
+    caret.style.height = `${charHeight}px`;
+
+    if (settings.caretStyle === 'underline') {
+        caret.style.top = `${parseFloat(caret.style.top) + charHeight - 4}px`;
+    }
+    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : '';
+};
+
+const updateTextScroll = () => {
+    const isStatic = true; // Simplified to always use static multiline display
+    textContentWrapper.classList.toggle('static', isStatic);
+
+    const targetChar = textContentWrapper.querySelectorAll('.char')[typedText.length];
+    if (!targetChar) {
+       textContentWrapper.style.transform = 'translateY(0px)';
+       return;
+    }
+
+    const lineHeight = targetChar.offsetHeight;
+    const scrollOffset = targetChar.offsetTop;
+    
+    const containerHeight = textDisplayContainer.clientHeight;
+    let targetScroll = scrollOffset - (containerHeight / 2) + (lineHeight / 2);
+
+    const maxScroll = textContentWrapper.scrollHeight - containerHeight;
+    targetScroll = Math.max(0, Math.min(targetScroll, maxScroll));
+    
+    textContentWrapper.style.transform = `translateY(-${targetScroll}px)`;
+};
+
+const updateStats = (isFinal = false) => {
+    if (!startTime) return;
+    const elapsed = (Date.now() - startTime) / 1000;
+    const minutes = elapsed / 60;
+    
+    const correctChars = typedText.split('').filter((c, i) => c === originalText[i]).length;
+    const wpm = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
+    
+    const accuracy = totalCharsTyped > 0 ? Math.round(((totalCharsTyped - totalErrors) / totalCharsTyped) * 100) : 100;
+    
+    if (isFinal || isTestComplete) {
+        wpmDisplay.textContent = wpm;
+        accuracyDisplay.textContent = `${accuracy}%`;
+        timeDisplay.textContent = `${Math.round(elapsed)}s`;
+    } else if (isTestActive) {
+        liveWPMDisplay.textContent = `${wpm} WPM`;
+        liveAccDisplay.textContent = `${accuracy}% ACC`;
+
+        if (testConfig.mode === 'time') {
+            const remaining = testConfig.value - elapsed;
+            timeDisplay.textContent = `${Math.ceil(remaining)}s`;
+            if (remaining <= 0) completeTest();
+        } else {
+             timeDisplay.textContent = `${Math.round(elapsed)}s`;
+        }
+    }
+};
+
+const renderKeyboard = (layoutName) => {
+    const layout = layouts[layoutName];
+    if (!layout) {
+        keyboardContainer.innerHTML = "";
+        keyMap = {};
+        return;
+    }
+    keyboardContainer.innerHTML = "";
+    keyMap = {};
+    layout.forEach(row => {
+        const rowEl = document.createElement("div");
+        rowEl.className = "keyboard-row";
+        row.forEach(keyData => {
+            if (keyData.t === 'gap') {
+                const gapEl = document.createElement('div');
+                gapEl.className = `key-gap`;
+                rowEl.appendChild(gapEl);
                 return;
             }
-            if (statTimer) clearInterval(statTimer);
-            if (inactivityTimer) clearTimeout(inactivityTimer);
-            
-            isTestActive = false;
-            isPaused = false;
-            isTestComplete = false;
-            originalText = '';
-            typedText = '';
-            startTime = null;
-            statTimer = null;
-            inactivityTimer = null;
-            totalCharsTyped = 0;
-            totalErrors = 0;
-            
-            textContentWrapper.innerHTML = `<div class="word"><span class="char">Select a mode to begin.</span></div>`;
-            wpmDisplay.textContent = '0';
-            accuracyDisplay.textContent = '100%';
-            timeDisplay.textContent = '0s';
-            
-            statsContainer.classList.add('hidden');
-            inTestStats.classList.add('hidden');
-            modeControls.classList.remove('hidden');
-            restartBtn.classList.remove('visible');
-            
-            // --- Tab Focus Management ---
-            // Make mode controls focusable again
-            setControlsFocusable(true);
-            restartBtn.tabIndex = -1;
-            
-            updateTextScroll();
-        }
-
-        const renderText = () => {
-            textContentWrapper.innerHTML = '';
-            originalText.split('').forEach((char, index) => {
-                const charEl = document.createElement('span');
-                charEl.className = 'char';
-                charEl.textContent = char;
-
-                if (index < typedText.length) {
-                    const typedChar = typedText[index];
-                    charEl.classList.add(char === typedChar ? 'correct' : 'incorrect');
-                    if (char === ' ' && char !== typedChar) {
-                        charEl.classList.add('space');
-                    }
-                }
-
-                if (index === typedText.length) {
-                    charEl.classList.add('current');
-                }
-
-                if (char === ' ') {
-                    charEl.innerHTML = '&nbsp;';
-                }
-
-                if (textDisplaySelect.value === 'static') {
-                    const lastWord = textContentWrapper.lastChild && textContentWrapper.lastChild.classList.contains('word') ? textContentWrapper.lastChild : null;
-                    if (char !== ' ' && lastWord) {
-                        lastWord.appendChild(charEl);
-                    } else {
-                        const wordEl = document.createElement('div');
-                        wordEl.className = 'word';
-                        wordEl.appendChild(charEl);
-                        textContentWrapper.appendChild(wordEl);
-                    }
-                } else {
-                    textContentWrapper.appendChild(charEl);
-                }
-            });
-            updateTextScroll();
-        };
-
-        const updateTextScroll = () => {
-             const isStatic = textDisplaySelect.value === 'static';
-             textDisplayContainer.classList.toggle('static-fade', isStatic && textContentWrapper.scrollHeight > textDisplayContainer.clientHeight);
-            
-             textContentWrapper.classList.toggle('static', isStatic);
-             textContentWrapper.classList.toggle('scroll', !isStatic);
-
-
-            const currentLetter = textContentWrapper.querySelector('.char.current');
-            if (!currentLetter) {
-                 textContentWrapper.style.transform = 'translateY(0px)';
-                return;
-            };
-
-            if (isStatic) {
-                const lineHeight = currentLetter.offsetHeight;
-                const scrollOffset = currentLetter.offsetTop;
-                // Start scrolling when the current line is past the first line
-                if (scrollOffset >= lineHeight) {
-                     // We subtract one line height to keep the current line visible
-                    textContentWrapper.style.transform = `translateY(-${scrollOffset - lineHeight}px)`;
-                } else {
-                    textContentWrapper.style.transform = 'translateY(0px)';
-                }
-            } else { // scroll mode
-                const containerCenter = textDisplayContainer.offsetWidth / 2;
-                const letterOffset = currentLetter.offsetLeft + currentLetter.offsetWidth / 2;
-                const scrollAmount = containerCenter - letterOffset;
-                textContentWrapper.style.transform = `translateX(${scrollAmount}px)`;
-            }
-        }
-        
-        const updateInTestStats = () => {
-             if (!isTestActive || typedText.length === 0) {
-                 inTestStats.textContent = '';
-                 return;
-             };
-
-            let wordsTyped = 0;
-            const totalWordsInOriginal = originalText.trim().split(/\s+/).length;
-
-            if(typedText.length > 0) {
-                const typedWordsArray = typedText.trim().split(/\s+/);
-                wordsTyped = typedWordsArray.length;
-                // Don't count the current word until a space is typed
-                if(originalText[typedText.length-1] !== ' ' && typedText.length < originalText.length) {
-                    wordsTyped--;
-                }
-            }
-            
-            // Ensure final count is accurate
-            if (typedText.length >= originalText.length) {
-                wordsTyped = totalWordsInOriginal;
-            }
-
-            let statsHtml = '';
-            const { mode, value } = testConfig;
-
-            if (mode === 'time') {
-                statsHtml = `words: ${wordsTyped}`;
-            } else if (mode === 'words') {
-                statsHtml = `${wordsTyped} / ${value}`;
-            } else if (mode === 'quote' || mode === 'code') {
-                statsHtml = `${wordsTyped} / ${totalWordsInOriginal}`;
-            }
-            inTestStats.textContent = statsHtml;
-        }
-
-
-        const updateStats = () => {
-            if (!startTime || isPaused) return;
-            const elapsed = (Date.now() - startTime) / 1000;
-            const minutes = elapsed / 60;
-
-            if (testConfig.mode === 'time') {
-                const remaining = testConfig.value - elapsed;
-                timeDisplay.textContent = `${Math.ceil(remaining)}s`;
-                if (remaining <= 0) {
-                    completeTest();
-                }
+            const keyEl = document.createElement("div");
+            keyEl.className = `key ${keyData.s}`;
+            keyEl.dataset.key = keyData.k;
+            if (keyData.t.length > 1) {
+                keyEl.innerHTML = `<span class="special-text">${keyData.t}</span>`;
             } else {
-                 timeDisplay.textContent = `${Math.round(elapsed)}s`;
+                keyEl.textContent = keyData.t;
             }
-
-            const correctChars = typedText.split('').filter((char, index) => char === originalText[index]).length;
-            const wpm = minutes > 0 ? Math.round((correctChars / 5) / minutes) : 0;
-            const accuracy = totalCharsTyped > 0 ? Math.round(((totalCharsTyped - totalErrors) / totalCharsTyped) * 100) : 100;
-            
-            wpmDisplay.textContent = wpm;
-            accuracyDisplay.textContent = `${accuracy}%`;
-            updateInTestStats();
-        }
-        
-        const pauseTest = () => {
-            if (!isTestActive || isPaused || isTestComplete) return;
-            isPaused = true;
-            if (statTimer) clearInterval(statTimer);
-            if (inactivityTimer) clearTimeout(inactivityTimer);
-
-            modeControls.classList.remove('hidden');
-            restartBtn.classList.add('visible');
-
-            // --- Tab Focus Management ---
-            // Make only the restart button focusable
-            setControlsFocusable(false);
-            restartBtn.tabIndex = 0;
-        }
-        
-        const resumeTest = () => {
-            if (!isPaused) return;
-            isPaused = false;
-            inactivityTimer = setTimeout(pauseTest, 5000); // 5 second inactivity timeout
-
-            modeControls.classList.add('hidden');
-            restartBtn.classList.remove('visible');
-
-            // --- Tab Focus Management ---
-            setControlsFocusable(true);
-            restartBtn.tabIndex = -1;
-        }
-
-        const handleKeyPress = async (e) => {
-            const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
-            
-            // --- Tab Key Logic ---
-            if (e.key === 'Tab') {
-                e.preventDefault();
-                // If the restart button is visible (test is paused or complete), focus it
-                if (restartBtn.classList.contains('visible')) {
-                    restartBtn.focus();
-                } else {
-                    // Otherwise, pause the test, which will make the button visible and focusable
-                    pauseTest();
-                    // Use a timeout to ensure the element is focusable before trying to focus it
-                    setTimeout(() => restartBtn.focus(), 0);
-                }
-                return;
-            }
-
-            if (isPaused) {
-                if(e.key.length === 1 && !e.ctrlKey && !e.metaKey){
-                    resumeTest();
-                } else {
-                    return;
-                }
-            }
-            
-            if (ignoredKeys.includes(e.key) || isTestComplete) return;
-            
-            if (!isTestActive) {
-                // Start test on any character key press
-                if (e.key.length === 1) { 
-                    await startTest();
-                } else {
-                    return;
-                }
-            }
-
-            // Pause on Escape key
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                pauseTest();
-                return;
-            }
-            
-            // First valid keypress starts the timer
-            if (typedText.length === 0 && startTime === null && e.key !== 'Backspace') {
-                startTime = Date.now();
-                statTimer = setInterval(updateStats, 100);
-                statsContainer.classList.remove('hidden');
-                inTestStats.classList.remove('hidden');
-                modeControls.classList.add('hidden');
-                restartBtn.classList.add('visible');
-                // --- Tab Focus Management ---
-                setControlsFocusable(false); // Make controls non-focusable during test
-                restartBtn.tabIndex = 0; // Make restart button focusable
-            }
-
-            if (inactivityTimer) clearTimeout(inactivityTimer);
-            inactivityTimer = setTimeout(pauseTest, 5000);
-
-            pressKey(e.code);
-            e.preventDefault();
-
-            if (e.key === 'Backspace') {
-                typedText = typedText.slice(0, -1);
-            } else if (typedText.length < originalText.length && e.key.length === 1) {
-                totalCharsTyped++;
-                if (e.key !== originalText[typedText.length]) {
-                    totalErrors++;
-                }
-                typedText += e.key;
-            }
-
-            renderText();
-            updateStats();
-
-            if (testConfig.mode !== 'time' && typedText.length >= originalText.length) {
-                completeTest();
-            }
-        }
-
-        const completeTest = () => {
-            if (statTimer) clearInterval(statTimer);
-            if (inactivityTimer) clearTimeout(inactivityTimer);
-            
-            isTestActive = false;
-            isTestComplete = true;
-
-            modeControls.classList.remove('hidden');
-            restartBtn.classList.add('visible');
-            statsContainer.classList.remove('hidden'); // Ensure final stats are visible
-
-            // --- Tab Focus Management ---
-            setControlsFocusable(true);
-            restartBtn.tabIndex = 0;
-            restartBtn.focus(); // Focus restart button on completion
-        }
-        
-        // --- Tab Focus Helper ---
-        const setControlsFocusable = (isFocusable) => {
-            const controls = modeControls.querySelectorAll('button');
-            controls.forEach(control => {
-                control.tabIndex = isFocusable ? 0 : -1;
-            });
-        };
-
-        const setMode = (mode, value) => {
-            document.querySelectorAll('#primaryModeGroup .mode-btn').forEach(btn => btn.classList.remove('active'));
-            const primaryBtn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
-            if(primaryBtn) primaryBtn.classList.add('active');
-
-            testConfig.mode = mode;
-            updateSecondaryOptions(mode, value);
-            startTest();
-        }
-        
-        const updateSecondaryOptions = (mode, defaultValue) => {
-            secondaryModeGroup.innerHTML = '';
-            const options = modeOptions[mode];
-            if (!options) return;
-
-            options.forEach(option => {
-                const btn = document.createElement('button');
-                btn.className = 'mode-btn';
-                btn.dataset.value = option;
-                btn.textContent = option;
-                btn.addEventListener('click', () => {
-                    const val = btn.dataset.value;
-                    testConfig.value = isNaN(parseInt(val)) ? val : parseInt(val);
-                    document.querySelectorAll('#secondaryModeGroup .mode-btn').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    startTest();
-                });
-                secondaryModeGroup.appendChild(btn);
-            });
-
-            const defaultBtn = secondaryModeGroup.querySelector(`[data-value="${defaultValue}"]`) || secondaryModeGroup.firstChild;
-            if(defaultBtn) {
-                defaultBtn.classList.add('active');
-                const val = defaultBtn.dataset.value;
-                testConfig.value = isNaN(parseInt(val)) ? val : parseInt(val);
-            }
-        }
-
-
-        // --- Settings and Keyboard Rendering ---
-        const renderKeyboard = (layoutName) => {
-            const layout = layouts[layoutName] || layouts.full;
-            keyboardContainer.innerHTML = "";
-            keyMap = {};
-            layout.forEach(row => {
-                const rowEl = document.createElement("div");
-                rowEl.className = "keyboard-row";
-                row.forEach(keyData => {
-                    if (keyData.t === 'gap') {
-                        const gapEl = document.createElement('div');
-                        gapEl.className = `key-gap`;
-                        rowEl.appendChild(gapEl);
-                        return;
-                    }
-
-                    const keyEl = document.createElement("div");
-                    keyEl.className = `key ${keyData.s}`;
-                    keyEl.dataset.key = keyData.k;
-                    if (keyData.t.length > 1 && keyData.t !== ' ') {
-                        keyEl.innerHTML = `<span class="special-text">${keyData.t}</span>`;
-                    } else {
-                        keyEl.textContent = keyData.t;
-                    }
-                    rowEl.appendChild(keyEl);
-                    keyMap[keyData.k] = keyEl;
-                });
-                keyboardContainer.appendChild(rowEl);
-            });
-        }
-        const pressKey = (keyCode) => {
-            const keyElement = keyMap[keyCode];
-            if (keyElement) {
-                keyElement.classList.add('pressed');
-                setTimeout(() => keyElement.classList.remove('pressed'), 100);
-            }
-        }
-        const setFont = (font) => document.documentElement.style.setProperty('--main-font', font);
-        
-        const initializeModeSelector = () => {
-            const extraOptions = [
-                {name: 'punctuation', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M6,13H8V15H6V13M6,17H8V19H6V17M10,7H12V9H10V7M16,7H18V9H16V7M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20Z"/></svg>'},
-                {name: 'numbers', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4,2H6V22H4V2M10,2H12V22H10V2M16,2H18V22H16V2M22,2V22H20V2H22M8,2V22H14V14H8V12H14V4H8V2Z"/></svg>'}
-            ];
-
-            extraOptions.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'mode-btn toggle-btn';
-                btn.dataset.option = opt.name;
-                btn.innerHTML = `${opt.icon} ${opt.name}`;
-                btn.addEventListener('click', () => {
-                    btn.classList.toggle('active');
-                    testConfig.includePunctuation = document.querySelector('[data-option="punctuation"]').classList.contains('active');
-                    testConfig.includeNumbers = document.querySelector('[data-option="numbers"]').classList.contains('active');
-                    startTest();
-                });
-                extraOptionsGroup.appendChild(btn);
-            });
-
-            const primaryModes = [
-                {name: 'time', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" /></svg>'},
-                {name: 'words', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M2,6L12,11L22,6V18A2,2 0 0,1 20,20H4A2,2 0 0,1 2,18V6M20,4H4C2.9,4 2,4.9 2,6V6H22V6C22,4.9 21.1,4 20,4Z" /></svg>'},
-                {name: 'quote', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,17H17L19,13V7H13V13H16M6,17H9L11,13V7H5V13H8L6,17Z" /></svg>'},
-                {name: 'code', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M7.4,6L2.4,11L7.4,16L6,17.4L-0.2,11L6,4.6L7.4,6M16.6,6L21.6,11L16.6,16L18,17.4L24.2,11L18,4.6L16.6,6Z" /></svg>'}
-            ];
-
-            primaryModeGroup.innerHTML = '';
-            primaryModes.forEach(mode => {
-                 const btn = document.createElement('button');
-                 btn.className = 'mode-btn';
-                 btn.dataset.mode = mode.name;
-                 btn.innerHTML = `${mode.icon} ${mode.name}`;
-                 btn.addEventListener('click', () => setMode(mode.name, modeOptions[mode.name][0]));
-                 primaryModeGroup.appendChild(btn);
-            });
-
-             setMode(testConfig.mode, testConfig.value);
-        }
-
-        // --- Event Listeners ---
-        settingsBtn.addEventListener('click', e => { 
-            e.stopPropagation(); 
-            const isOpen = settingsPanel.style.display === 'flex';
-            settingsPanel.style.display = isOpen ? 'none' : 'flex';
-            settingsBtn.classList.toggle('open', !isOpen);
+            rowEl.appendChild(keyEl);
+            keyMap[keyData.k] = keyEl;
         });
-        document.addEventListener('click', e => { 
-            if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
-                 settingsPanel.style.display = 'none';
-                 settingsBtn.classList.remove('open');
-            }
-        });
-        accentColorPicker.addEventListener('input', e => document.documentElement.style.setProperty('--accent-color', e.target.value));
-        textDisplaySelect.addEventListener('change', () => {
-            renderText();
-            updateTextScroll();
-        });
-        keyboardTypeSelect.addEventListener('change', e => {
-            const layout = e.target.value;
-            keyboardContainer.classList.toggle('hidden', layout === 'hidden');
-            if (layout !== 'hidden') {
-                renderKeyboard(layout);
-            }
-        });
-        codingLanguageSelect.addEventListener('change', () => {
-            if (testConfig.mode === 'code') {
-                startTest();
-            }
-        });
-        fontTypeSelect.addEventListener('change', e => setFont(e.target.value));
-        
-        document.addEventListener('keydown', handleKeyPress);
-        restartBtn.addEventListener('click', () => startTest());
-        window.addEventListener('blur', pauseTest);
-        window.addEventListener('resize', () => updateTextScroll());
+        keyboardContainer.appendChild(rowEl);
+    });
+};
 
+const pressKey = (keyCode) => {
+    if (settings.keyboard === 'hidden') return;
+    const keyElement = keyMap[keyCode];
+    if (keyElement) {
+        keyElement.classList.add('pressed');
+        setTimeout(() => keyElement.classList.remove('pressed'), 100);
+    }
+};
 
-        // --- Initial Load ---
-        document.addEventListener('DOMContentLoaded', () => {
-            initializeModeSelector();
-            setFont(fontTypeSelect.value);
-            const currentLayout = keyboardTypeSelect.value;
-            keyboardContainer.classList.toggle('hidden', currentLayout === 'hidden');
-             if (currentLayout !== 'hidden') {
-                 renderKeyboard(currentLayout);
-             }
+// --- Event Handlers ---
+const handleKeyPress = (e) => {
+    if (e.key === 'Tab' || e.key === 'Escape') {
+        e.preventDefault();
+        restartBtn.focus();
+        return;
+    }
+    const ignoredKeys = ['Shift', 'CapsLock', 'Control', 'Alt', 'Meta', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'];
+    if (ignoredKeys.includes(e.key) || isTestComplete || e.ctrlKey || e.metaKey) return;
+    
+    if (!isTestActive) {
+        if (e.key.length !== 1) return;
+        isTestActive = true;
+        startTime = Date.now();
+        statTimer = setInterval(updateStats, 200);
+        statsContainer.classList.remove('hidden');
+        inTestStats.classList.remove('hidden');
+        modeControls.classList.add('hidden');
+        restartBtn.classList.add('visible');
+        caret.style.opacity = '1';
+    }
+    
+    pressKey(e.code);
+    e.preventDefault();
+
+    if (e.key === 'Backspace') {
+        playKeySound();
+        typedText = typedText.slice(0, -1);
+    } else if (typedText.length < originalText.length && e.key.length === 1) {
+        totalCharsTyped++;
+        if (e.key !== originalText[typedText.length]) {
+            totalErrors++;
+            playErrorSound();
+        } else {
+            playKeySound();
+        }
+        typedText += e.key;
+    }
+
+    renderText();
+    updateCaretPosition();
+    if (testConfig.mode !== 'time' && testConfig.mode !== 'zen' && typedText.length >= originalText.length) {
+        completeTest();
+    }
+};
+
+// --- Settings Logic ---
+const applySettings = () => {
+    document.body.dataset.theme = settings.theme;
+    document.documentElement.style.setProperty('--accent-color', settings.accent);
+    document.documentElement.style.setProperty('--main-font', settings.font);
+    
+    caret.className = '';
+    caret.classList.add(settings.caretStyle);
+    if (settings.smoothCaret) caret.classList.add('smooth');
+
+    keyboardContainer.classList.toggle('hidden', settings.keyboard === 'hidden');
+    if (settings.keyboard !== 'hidden') {
+        renderKeyboard(settings.keyboard);
+    }
+};
+
+const saveSettings = () => {
+    localStorage.setItem('tapdance-settings', JSON.stringify(settings));
+};
+
+const loadSettings = () => {
+    const saved = localStorage.getItem('tapdance-settings');
+    if (saved) {
+        settings = { ...settings, ...JSON.parse(saved) };
+    }
+    themeSelect.value = settings.theme;
+    accentColorPicker.value = settings.accent;
+    fontTypeSelect.value = settings.font;
+    caretStyleSelect.value = settings.caretStyle;
+    smoothCaretToggle.checked = settings.smoothCaret;
+    soundToggle.checked = settings.sound;
+    keyboardTypeSelect.value = settings.keyboard;
+    
+    applySettings();
+};
+
+const initializeModeSelector = () => {
+    const createBtn = (group, config, clickHandler) => {
+        const btn = document.createElement('button');
+        btn.className = 'mode-btn';
+        if (config.isToggle) btn.classList.add('toggle-btn');
+        Object.keys(config.data).forEach(key => btn.dataset[key] = config.data[key]);
+        btn.innerHTML = `${config.icon || ''} ${config.name}`;
+        btn.addEventListener('click', () => clickHandler(btn));
+        group.appendChild(btn);
+        return btn;
+    };
+
+    ['punctuation', 'numbers'].forEach(name => {
+        createBtn(extraOptionsGroup, { name, isToggle: true, data: { option: name } }, (btn) => {
+            btn.classList.toggle('active');
+            testConfig.includePunctuation = extraOptionsGroup.querySelector('[data-option="punctuation"]').classList.contains('active');
+            testConfig.includeNumbers = extraOptionsGroup.querySelector('[data-option="numbers"]').classList.contains('active');
             startTest();
         });
-    </script>
+    });
+
+    const primaryModes = [
+        {name: 'zen', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M16.89,15.73C16.58,15.93 16.27,16.14 15.97,16.34C15.05,17 14.03,17.5 12.95,17.8C11.6,18.19 10.15,18.13 8.83,17.65C7.5,17.17 6.38,16.28 5.5,15.13C4.63,13.97 4.04,12.62 3.86,11.2C3.67,9.78 3.89,8.32 4.5,7C5.12,5.68 6.13,4.55 7.43,3.83C8.73,3.11 10.27,2.83 11.75,3.05C13.23,3.27 14.6,3.98 15.73,4.9C16.13,5.2 16.5,5.54 16.84,5.88L15.42,7.3L16.84,5.88C17.7,6.76 18.29,7.9 18.48,9.15C18.67,10.4 18.46,11.68 17.9,12.85C17.34,14 16.45,15 15.37,15.66L16.89,17.18L15.47,18.6L14,17.12C13.05,17.65 11.97,18 10.85,18C9.55,18 8.33,17.61 7.33,16.88C6.33,16.15 5.58,15.13 5.19,14C4.8,12.87 4.78,11.64 5.15,10.5C5.52,9.36 6.27,8.38 7.28,7.7L8.7,9.12C8.16,9.5 7.78,10.06 7.62,10.7C7.46,11.34 7.53,12.03 7.81,12.63C8.09,13.23 8.57,13.72 9.17,13.99C9.77,14.26 10.46,14.29 11.1,14.09C11.74,13.89 12.29,13.46 12.64,12.9C12.99,12.34 13.11,11.66 12.99,11C12.87,10.34 12.52,9.75 12.03,9.34L13.45,7.92L12.03,9.34C11.45,8.83 10.76,8.47 10,8.31C9.24,8.15 8.45,8.21 7.73,8.49C7.01,8.77 6.4,9.26 5.99,9.9L4.57,8.48L5.99,9.9C5.06,10.74 4.41,11.89 4.14,13.15C3.87,14.41 4,15.71 4.5,16.85C5,18 5.86,18.96 7,19.62C8.14,20.28 9.47,20.59 10.8,20.5C12.12,20.41 13.38,19.92 14.4,19.11C15.42,18.3 16.2,17.22 16.63,16L18.05,17.42L16.63,16Z" /></svg>'},
+        {name: 'time', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M16.2,16.2L11,13V7H12.5V12.2L17,14.9L16.2,16.2Z" /></svg>'},
+        {name: 'words', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M4.5,18H6V19.5H4.5V18M18,18H19.5V19.5H18V18M10.75,2.75C10.75,2.09 10.94,1.5 11.25,1C11.56,0.5 12,0.25 12.5,0.25C13,0.25 13.44,0.5 13.75,1C14.06,1.5 14.25,2.09 14.25,2.75V15.25C14.25,16.5 13.75,17.5 12.75,18.25L15.38,20.88L14.31,21.94L11.5,19.13L8.69,21.94L7.63,20.88L10.25,18.25C9.25,17.5 8.75,16.5 8.75,15.25V2.75H10.75V15.25C10.75,15.75 10.92,16.17 11.25,16.5C11.58,16.83 12,17 12.5,17C13,17 13.42,16.83 13.75,16.5C14.08,16.17 14.25,15.75 14.25,15.25V2.75Z" /></svg>'},
+        {name: 'quote', icon: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M14,17H17L19,13V7H13V13H16M6,17H9L11,13V7H5V13H8L6,17Z" /></svg>'}
+    ];
+    primaryModes.forEach(mode => {
+        const btn = createBtn(primaryModeGroup, { ...mode, data: { mode: mode.name } }, () => {
+            setMode(mode.name, modeOptions[mode.name][0]);
+        });
+        if (mode.name === testConfig.mode) btn.classList.add('active');
+    });
+
+    updateSecondaryOptions(testConfig.mode, testConfig.value);
+};
+
+const setMode = (mode, value) => {
+    document.querySelectorAll('#primaryModeGroup .mode-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector(`.mode-btn[data-mode="${mode}"]`)?.classList.add('active');
+    testConfig.mode = mode;
+    testConfig.value = value;
+    updateSecondaryOptions(mode, value);
+    startTest();
+};
+
+const updateSecondaryOptions = (mode, defaultValue) => {
+    secondaryModeGroup.innerHTML = '';
+    const options = modeOptions[mode];
+    if (!options || options.length === 0) {
+        modeDivider.style.display = 'none';
+        return;
+    }
+    modeDivider.style.display = 'block';
+
+    options.forEach(option => {
+        const btn = document.createElement('button');
+        btn.className = 'mode-btn';
+        btn.dataset.value = option;
+        btn.textContent = option;
+        btn.addEventListener('click', () => {
+            testConfig.value = isNaN(parseInt(option)) ? option : parseInt(option);
+            document.querySelectorAll('#secondaryModeGroup .mode-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            startTest();
+        });
+        secondaryModeGroup.appendChild(btn);
+    });
+    
+    const defaultBtn = secondaryModeGroup.querySelector(`[data-value="${defaultValue}"]`) || secondaryModeGroup.firstChild;
+    if (defaultBtn) {
+        defaultBtn.classList.add('active');
+        const val = defaultBtn.dataset.value;
+        testConfig.value = isNaN(parseInt(val)) ? val : parseInt(val);
+    }
+};
+
+// --- Initial Setup ---
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+    initializeModeSelector();
+    startTest();
+    
+    settingsBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        const isOpen = settingsPanel.style.display === 'flex';
+        settingsPanel.style.display = isOpen ? 'none' : 'flex';
+        settingsBtn.classList.toggle('open', !isOpen);
+    });
+    document.addEventListener('click', e => {
+        if (!settingsPanel.contains(e.target) && !settingsBtn.contains(e.target)) {
+            settingsPanel.style.display = 'none';
+            settingsBtn.classList.remove('open');
+        }
+    });
+
+    const addSettingListener = (el, key) => {
+        const event = el.type === 'checkbox' ? 'change' : 'input';
+        const valueProp = el.type === 'checkbox' ? 'checked' : 'value';
+        el.addEventListener(event, e => { 
+            settings[key] = e.target[valueProp];
+            applySettings();
+            saveSettings(); 
+        });
+    };
+    
+    themeSelect.addEventListener('change', e => { settings.theme = e.target.value; applySettings(); saveSettings(); });
+    accentColorPicker.addEventListener('input', e => { settings.accent = e.target.value; document.documentElement.style.setProperty('--accent-color', settings.accent); });
+    accentColorPicker.addEventListener('change', e => { saveSettings(); }); // Save on final selection
+    fontTypeSelect.addEventListener('change', e => { settings.font = e.target.value; applySettings(); saveSettings(); });
+    caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); updateCaretPosition(); });
+    smoothCaretToggle.addEventListener('change', e => { settings.smoothCaret = e.target.checked; applySettings(); saveSettings(); });
+    soundToggle.addEventListener('change', e => { settings.sound = e.target.checked; saveSettings(); if(settings.sound) setupSound(); });
+    keyboardTypeSelect.addEventListener('change', e => { settings.keyboard = e.target.value; applySettings(); saveSettings(); });
+    
+    document.addEventListener('keydown', handleKeyPress);
+    restartBtn.addEventListener('click', startTest);
+    textDisplayContainer.addEventListener('click', () => document.body.focus());
+    window.addEventListener('resize', () => { updateCaretPosition(); updateTextScroll(); });
+});
+</script>
 </body>
 </html>
