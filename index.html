@@ -144,15 +144,15 @@
             flex-direction: column;
             justify-content: space-between;
             align-items: center;
-            gap: 2rem;
+            gap: 1rem; /* Reduced gap for more compact layout */
         }
 
         /* --- HEADER / SETTINGS --- */
         .header {
             position: absolute;
-            top: 2rem;
-            left: 2rem;
-            right: 2rem;
+            top: 1rem; /* Closer to top */
+            left: 1rem;
+            right: 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -203,7 +203,7 @@
             padding: 1.5rem;
             border-radius: 12px;
             border: 1px solid var(--border-color);
-            width: 300px;
+            width: 280px; /* Slightly narrower for mobile */
             z-index: 10;
             box-shadow: 0 15px 35px rgba(0,0,0,0.25);
         }
@@ -274,16 +274,18 @@
             align-items: center;
             width: 100%;
             max-width: 900px;
-            gap: 2rem;
-            margin-top: -4rem; /* Pull content up a bit */
+            gap: 1.5rem;
+            margin-top: 0; /* Removed negative margin */
         }
 
         /* --- Stats (Results) --- */
         .stats {
-            display: flex; gap: 4rem; justify-content: center;
+            display: flex; gap: 2rem; /* Reduced gap */
+            flex-wrap: wrap; /* Allow stats to wrap */
+            justify-content: center;
             transition: opacity 0.3s ease, transform 0.3s ease;
             transform: translateY(20px);
-            height: 60px;
+            min-height: 60px; /* Use min-height to allow wrapping */
         }
         .stats.hidden { opacity: 0; visibility: hidden; transform: translateY(0px); }
 
@@ -299,7 +301,7 @@
             transition: all 0.3s ease;
         }
         .test-mode-controls.hidden { opacity: 0; visibility: hidden; transform: scale(0.95); }
-        .mode-group { display: flex; gap: 0.5rem; align-items: center; }
+        .mode-group { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
 
         .mode-divider {
             width: 1px;
@@ -342,16 +344,16 @@
         .text-display {
             width: 100%; font-size: 1.8rem; line-height: 2;
             font-family: var(--main-font); overflow: hidden;
-            height: 180px; /* MODIFIED: Set fixed height to prevent layout shifts */
+            height: 180px;
             position: relative;
-            cursor: text; /* Indicate this area is interactive */
+            cursor: text;
             transition: opacity 0.3s ease;
         }
 
         .text-content-wrapper { 
             position: relative;
             transition: transform 0.2s ease-out; 
-            width: 100%; /* Ensure wrapper takes full width */
+            width: 100%;
         }
         .text-content-wrapper.static { white-space: normal; }
         .text-content-wrapper.scroll { white-space: nowrap; }
@@ -386,23 +388,19 @@
             margin-top: 1rem; opacity: 0; visibility: hidden;
             transform: scale(0.9); display: flex; align-items: center; justify-content: center;
             width: 50px;
-            height: 0; /* Starts at 0, transitions to 50px */
+            height: 0; 
             border-radius: 50%;
         }
         .restart-btn.visible { 
             opacity: 1; 
             visibility: visible; 
-            height: 50px; /* Match width for a circle */
+            height: 50px;
             transform: scale(1); 
         }
         
         @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 var(--accent-color);
-            }
-            100% {
-                box-shadow: 0 0 0 15px transparent;
-            }
+            0% { box-shadow: 0 0 0 0 var(--accent-color); }
+            100% { box-shadow: 0 0 0 15px transparent; }
         }
 
         .restart-btn:hover, .restart-btn:focus {
@@ -453,21 +451,34 @@
         
         /* --- Responsive Design --- */
         @media (max-width: 900px) {
-            /* :root { --key-unit-width: 2.25rem; } */ /* Base size is now controlled by JS */
             .text-display { font-size: 1.6rem; }
         }
+
         @media (max-width: 768px) {
             .container { padding: 1rem; }
             .header { top: 1rem; left: 1rem; right: 1rem; }
-            .main-content-wrapper { margin-top: 0; }
             :root { --key-unit-width: 1.8rem; }
-            .test-mode-controls { justify-content: center; }
-            .keyboard { display: none; } /* Hide keyboard on smaller screens for better experience */
+            .keyboard { display: none; } /* Hide keyboard on smaller screens */
+
+            /* MODIFIED: Stack controls vertically for tablets and phones */
+            .test-mode-controls {
+                flex-direction: column;
+                align-items: stretch; /* Make groups take full width */
+                gap: 1rem;
+            }
+            .mode-divider {
+                display: none; /* Hide vertical divider */
+            }
+             .mode-btn {
+                padding: 0.8rem 1rem;      /* Better tap size */
+                font-size: 1rem;           /* More readable */
+                min-height: 44px;          /* Ensure minimum tap target height */
+            }
         }
+
         @media (max-width: 480px) {
-            .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; } /* MODIFIED */
+            .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; }
             .test-mode-controls { font-size: 0.8rem; }
-            .mode-btn { padding: 0.4rem 0.8rem; }
             .stats { gap: 1.5rem; }
             .stat-value { font-size: 1.5rem; }
         }
@@ -880,7 +891,6 @@ const updateTextAndCaret = () => {
     }
     
     if (settings.textDisplayMode === 'static') {
-        // MODIFIED: New vertical scrolling logic to prevent text cutoff
         if (!targetChar) { 
              targetChar = allChars[0];
         }
@@ -890,10 +900,8 @@ const updateTextAndCaret = () => {
         const currentLineOffset = targetChar.offsetTop;
         const lineHeight = targetChar.offsetHeight;
 
-        // Calculate the scroll position to center the current line
         const scrollY = currentLineOffset - (containerHeight / 2) + (lineHeight / 2);
 
-        // Clamp the scroll value to avoid over-scrolling at the start or end
         const maxScroll = textContentWrapper.scrollHeight - containerHeight;
         const clampedScrollY = Math.max(0, Math.min(scrollY, maxScroll));
 
@@ -933,10 +941,6 @@ const updateStats = (isFinal = false) => {
 
         if (testConfig.mode === 'time') {
             const remaining = testConfig.value - elapsed;
-            // The time display is now the live timer during the test.
-            // Let's find a different place or way to show it if needed.
-            // For now, let's keep the live WPM/Acc prominent.
-            // We can show the countdown in the main `timeDisplay` since that panel is hidden.
             liveWPMDisplay.textContent = `${Math.ceil(remaining)}s | ${wpm} WPM`;
 
             if (remaining <= 0) completeTest();
@@ -989,14 +993,11 @@ const pressKey = (keyCode) => {
 
 // --- Event Handlers ---
 const handleKeyPress = (e) => {
-    // When the test is finished or paused, 'Tab' can be used to focus the restart button.
     if (e.key === 'Tab') {
         e.preventDefault();
-        // If the test is active, pause it. The pause function handles focusing the restart button.
         if (isTestActive) {
             pauseTest();
         } 
-        // If the test is not active (i.e., it's paused or completed), just focus the restart button.
         else if (restartBtn.classList.contains('visible')) {
             restartBtn.focus();
         }
@@ -1019,13 +1020,12 @@ const handleKeyPress = (e) => {
     if (originalText === '') return; // Don't start on empty text
 
     if (!isTestActive) {
-        // This block handles starting or resuming a test
         if (e.key.length !== 1 && e.key !== 'Backspace') return;
         
         isTestActive = true;
-        if (!startTime) { // If it's a brand new start
+        if (!startTime) { 
             startTime = Date.now();
-        } else { // Resuming from a pause, adjust start time
+        } else { 
              const pauseDuration = Date.now() - lastTypedTime;
              startTime += pauseDuration;
         }
@@ -1045,7 +1045,6 @@ const handleKeyPress = (e) => {
 
     if (e.key === 'Backspace') {
         if (justSkipped) {
-            // Undo the word skip
             const amount = lastSkipInfo.to - lastSkipInfo.from;
             totalCharsTyped -= amount;
             totalErrors -= amount;
@@ -1053,7 +1052,6 @@ const handleKeyPress = (e) => {
             justSkipped = false;
             lastSkipInfo = null;
         } else if (typedText.length > 0) {
-            // Normal backspace
             typedText = typedText.slice(0, -1);
             justSkipped = false; 
         }
@@ -1063,17 +1061,15 @@ const handleKeyPress = (e) => {
         const isSkipAttempt = settings.skipWordOnSpace && e.key === ' ' && originalText[typedText.length] !== ' ';
 
         if (isSkipAttempt) {
-            // Handle skipping the rest of the word
             playErrorSound();
             const skipFrom = typedText.length;
             const nextSpaceIndex = originalText.indexOf(' ', skipFrom);
             
             const targetIndex = (nextSpaceIndex === -1) 
-                ? originalText.length // If no more spaces, skip to the very end
-                : nextSpaceIndex + 1; // Skip to the character after the space
+                ? originalText.length 
+                : nextSpaceIndex + 1;
 
             const numToAdvance = targetIndex - skipFrom;
-            // Use a null character placeholder to mark skipped characters as incorrect
             typedText += '\0'.repeat(numToAdvance); 
             totalCharsTyped += numToAdvance;
             totalErrors += numToAdvance;
@@ -1081,7 +1077,6 @@ const handleKeyPress = (e) => {
             lastSkipInfo = { from: skipFrom, to: targetIndex };
             justSkipped = true;
         } else {
-            // Handle a normal character press
             justSkipped = false;
             totalCharsTyped++;
             
@@ -1094,7 +1089,6 @@ const handleKeyPress = (e) => {
             typedText += e.key;
         }
     } else {
-        // Any other key press that we don't handle explicitly resets the skip flag.
         justSkipped = false;
     }
 
@@ -1117,7 +1111,7 @@ const applySettings = () => {
     if (settings.keyboard !== 'hidden') {
         renderKeyboard(settings.keyboard);
     }
-    updateTextAndCaret(); // Apply text style & caret
+    updateTextAndCaret();
 };
 
 const saveSettings = () => {
@@ -1224,7 +1218,7 @@ const updateSecondaryOptions = (mode, defaultValue) => {
 document.addEventListener('DOMContentLoaded', () => {
     loadSettings();
     initializeModeSelector();
-    startTest(); // Start with a test loaded by default
+    startTest(); 
     
     settingsBtn.addEventListener('click', e => {
         e.stopPropagation();
@@ -1241,7 +1235,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     themeSelect.addEventListener('change', e => { settings.theme = e.target.value; applySettings(); saveSettings(); });
     accentColorPicker.addEventListener('input', e => { settings.accent = e.target.value; document.documentElement.style.setProperty('--accent-color', settings.accent); });
-    accentColorPicker.addEventListener('change', () => { saveSettings(); }); // Save on final selection
+    accentColorPicker.addEventListener('change', () => { saveSettings(); });
     fontTypeSelect.addEventListener('change', e => { settings.font = e.target.value; applySettings(); saveSettings(); });
     caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); });
     textDisplayModeSelect.addEventListener('change', e => { settings.textDisplayMode = e.target.value; applySettings(); saveSettings();});
@@ -1254,11 +1248,11 @@ document.addEventListener('DOMContentLoaded', () => {
         settings.keyboardSize = e.target.value;
         applySettings();
     });
-    keyboardSizeSlider.addEventListener('change', () => { // Save on final selection
+    keyboardSizeSlider.addEventListener('change', () => { 
         saveSettings();
     });
     resetKeyboardSizeBtn.addEventListener('click', () => {
-        settings.keyboardSize = 2.25; // Default value
+        settings.keyboardSize = 2.25; 
         keyboardSizeSlider.value = settings.keyboardSize;
         applySettings();
         saveSettings();
