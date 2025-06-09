@@ -34,7 +34,7 @@
         }
 
         /* --- Theme Definitions --- */
-        body[data-theme="latte"] {
+        body[data-theme="light"] {
             --bg-primary: #eff1f5;
             --bg-secondary: #e6e9ef;
             --bg-tertiary: #dce0e8;
@@ -117,6 +117,124 @@
             --border-color: #292e29;
             --incorrect-color: #b33a3a;
         }
+        
+        body[data-theme="crimson"] {
+            --bg-primary: #1a0000;
+            --bg-secondary: #2e0c0c;
+            --bg-tertiary: #4d1a1a;
+            --text-primary: #ffcdd2;
+            --text-secondary: #e57373;
+            --text-muted: #8e2424;
+            --accent-color: #ef9a9a;
+            --border-color: #4d1a1a;
+            --incorrect-color: #fbc02d; /* Yellow for contrast */
+        }
+
+        body[data-theme="monkey-types"] {
+            --bg-primary: #212121;
+            --bg-secondary: #313131;
+            --bg-tertiary: #424242;
+            --text-primary: #fffde7;
+            --text-secondary: #ffee58;
+            --text-muted: #7d721a;
+            --accent-color: #fdd835;
+            --border-color: #424242;
+            --incorrect-color: #ec407a;
+        }
+        
+        body[data-theme="retro-light"] {
+            --bg-primary: #dfd8c8;
+            --bg-secondary: #d1c7b8;
+            --bg-tertiary: #bbaF9f;
+            --text-primary: #3e2723;
+            --text-secondary: #5d4037;
+            --text-muted: #8d6e63;
+            --accent-color: #ff6f00;
+            --border-color: #bbaF9f;
+            --incorrect-color: #d84315;
+        }
+
+        body[data-theme="retro-dark"] {
+            --bg-primary: #1e2a2a;
+            --bg-secondary: #2a3a3a;
+            --bg-tertiary: #3a504b;
+            --text-primary: #e0e0e0;
+            --text-secondary: #f2a669;
+            --text-muted: #8c7e6a;
+            --accent-color: #e88358;
+            --border-color: #3a504b;
+            --incorrect-color: #c94f4f;
+        }
+        
+        body[data-theme="mocha"] {
+            --bg-primary: #3c2f2f;
+            --bg-secondary: #4a3c3c;
+            --bg-tertiary: #6b5a5a;
+            --text-primary: #f5e3e0;
+            --text-secondary: #d1b7b0;
+            --text-muted: #8a7b78;
+            --accent-color: #a38f83;
+            --border-color: #6b5a5a;
+            --incorrect-color: #d48484;
+        }
+
+        body[data-theme="espresso"] {
+            --bg-primary: #2a1d15;
+            --bg-secondary: #3a2d25;
+            --bg-tertiary: #4a3d35;
+            --text-primary: #f5e6d3;
+            --text-secondary: #d3bda6;
+            --text-muted: #7a6d55;
+            --accent-color: #a47c48;
+            --border-color: #4a3d35;
+            --incorrect-color: #d86262;
+        }
+        
+        body[data-theme="latte"] {
+            --bg-primary: #e8d9c4;
+            --bg-secondary: #d9c8b4;
+            --bg-tertiary: #c0ae98;
+            --text-primary: #4b3832;
+            --text-secondary: #6e584d;
+            --text-muted: #a4907c;
+            --accent-color: #855b3b;
+            --border-color: #c0ae98;
+            --incorrect-color: #c04c4c;
+        }
+
+        body[data-theme="cold-brew"] {
+            --bg-primary: #1e1511;
+            --bg-secondary: #2a201c;
+            --bg-tertiary: #3a302c;
+            --text-primary: #dcdcdc;
+            --text-secondary: #a0a0a0;
+            --text-muted: #6b6b6b;
+            --accent-color: #7ab4e8;
+            --border-color: #3a302c;
+            --incorrect-color: #e87d7d;
+        }
+        
+        /* --- Special Effects CSS --- */
+        .char.ghost-fade {
+            opacity: 0.15;
+            transition: opacity 1.5s ease-out;
+        }
+
+        .fx-redacted .char.incorrect {
+            background-color: var(--text-primary);
+            color: var(--text-primary);
+            border-radius: 0;
+            text-shadow: none;
+        }
+        
+        .word-wrapper {
+            display: inline-block; /* FIX: Prevents words from breaking apart */
+        }
+        
+        .word-wrapper.fx-hidden, .char.fx-hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -145,6 +263,8 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem; /* Reduced gap for more compact layout */
+            position: relative;
+            z-index: 1;
         }
 
         /* --- HEADER / SETTINGS --- */
@@ -354,21 +474,24 @@
             position: relative;
             transition: transform 0.2s ease-out; 
             width: 100%;
+            white-space: normal;
         }
-        .text-content-wrapper.static { white-space: normal; }
-        .text-content-wrapper.scroll { white-space: nowrap; }
+        .text-content-wrapper.scroll { 
+            white-space: nowrap; 
+        }
 
         .char {
+            display: inline-block; /* Fix for wrapping and caret positioning */
             position: relative;
-            transition: color 0.2s ease;
+            transition: color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
             color: var(--text-muted); /* Untyped text is muted */
         }
         .char.correct { color: var(--text-primary); }
         .char.incorrect { color: var(--incorrect-color); background-color: rgba(248, 113, 113, 0.1); border-radius: 4px; }
-
+        
         #caret {
             position: absolute;
-            transition: left var(--caret-transition-speed) ease, top var(--caret-transition-speed) ease;
+            transition: left var(--caret-transition-speed) ease, top var(--caret-transition-speed) ease, transform 0.1s ease-out;
             border-radius: 2px;
             opacity: 0;
             animation: blink 1s infinite;
@@ -376,8 +499,6 @@
         #caret.line { width: 2px; background-color: var(--accent-color); }
         #caret.block { background-color: var(--accent-color); opacity: 0.3 !important; animation: none; }
         #caret.underline { height: 3px; background-color: var(--accent-color); }
-        
-        #caret.smooth { transition: left 0.1s linear, top 0.1s linear; }
 
         @keyframes blink { 50% { opacity: 1; } }
 
@@ -470,10 +591,10 @@
                 display: none; /* Hide vertical divider */
             }
              .mode-btn {
-                padding: 0.8rem 1rem;      /* Better tap size */
-                font-size: 1rem;           /* More readable */
-                min-height: 44px;          /* Ensure minimum tap target height */
-            }
+                 padding: 0.8rem 1rem;     /* Better tap size */
+                 font-size: 1rem;           /* More readable */
+                 min-height: 44px;          /* Ensure minimum tap target height */
+             }
         }
 
         @media (max-width: 480px) {
@@ -500,18 +621,41 @@
                         <label for="themeSelect">Theme</label>
                         <select id="themeSelect">
                             <option value="dark">Dark</option>
-                            <option value="latte">Latte</option>
+                            <option value="light">Light</option>
                             <option value="ocean">Ocean</option>
                             <option value="matrix">Matrix</option>
                             <option value="dracula">Dracula</option>
                             <option value="sunset">Sunset</option>
                             <option value="forest">Forest</option>
                             <option value="deepwoken">Deepwoken</option>
+                            <option value="crimson">Crimson</option>
+                            <option value="monkey-types">The Monkey Types?</option>
+                            <option value="retro-light">Retro (Light)</option>
+                            <option value="retro-dark">Retro (Dark)</option>
+                            <option value="mocha">Mocha</option>
+                            <option value="espresso">Espresso</option>
+                            <option value="latte">Latte</option>
+                            <option value="cold-brew">Cold Brew</option>
                         </select>
                     </div>
                      <div class="setting">
                         <label for="accentColor">Accent</label>
                         <input type="color" id="accentColor" value="#BEB05B">
+                    </div>
+                    <div class="setting">
+                        <label for="specialEffectSelect">Special Effects</label>
+                        <select id="specialEffectSelect">
+                            <option value="none">None</option>
+                            <option value="ghost">Ghost</option>
+                            <option value="redacted">Redacted</option>
+                            <option value="blind">Blind</option>
+                            <option value="focused">Focused</option>
+                            <option value="recall">Recall</option>
+                            <option value="dyslexic">Dyslexic</option>
+                            <option value="lazy">Lazy Caret</option>
+                            <option value="jumpy">Jumpy Caret</option>
+                            <option value="random">Random Caret</option>
+                        </select>
                     </div>
                     <div class="setting">
                         <label for="fontType">Font</label>
@@ -605,8 +749,8 @@
                     <span id="liveAcc" class="live-stat-acc"></span>
                 </div>
                 <div class="text-display" id="textDisplayContainer">
+                    <div id="caret" class="line"></div>
                     <div class="text-content-wrapper" id="textContentWrapper">
-                        <div id="caret" class="line"></div>
                         <!-- Spans are dynamically inserted here -->
                     </div>
                 </div>
@@ -645,6 +789,7 @@ const modeDivider = D('modeDivider');
 // --- Settings Elements ---
 const themeSelect = D('themeSelect');
 const accentColorPicker = D('accentColor');
+const specialEffectSelect = D('specialEffectSelect');
 const fontTypeSelect = D('fontType');
 const caretStyleSelect = D('caretStyleSelect');
 const textDisplayModeSelect = D('textDisplayModeSelect');
@@ -672,6 +817,7 @@ const modeOptions = { time: [15, 30, 60, 120], words: [10, 25, 50, 100], quote: 
 
 let keyMap = {};
 let originalText = '';
+let wordBoundaries = [];
 let typedText = '';
 let isTestActive = false;
 let isTestComplete = false;
@@ -683,6 +829,8 @@ let totalCharsTyped = 0;
 let totalErrors = 0;
 let justSkipped = false;
 let lastSkipInfo = null;
+let lastRandomOffsetX = 0;
+let lastRandomOffsetY = 0;
 
 let testConfig = {
     mode: 'words', value: 25,
@@ -691,7 +839,7 @@ let testConfig = {
 let settings = {
     theme: 'dark', accent: '#BEB05B', font: "'Roboto Mono', monospace",
     caretStyle: 'line', smoothCaret: true, skipWordOnSpace: true, sound: false, keyboard: 'hidden',
-    keyboardSize: 2.25, textDisplayMode: 'static',
+    keyboardSize: 2.25, textDisplayMode: 'static', specialEffect: 'none',
 };
 
 // --- Sound Engine ---
@@ -732,6 +880,25 @@ const resetInactivityTimer = () => {
     }
 };
 
+// --- Helper Functions ---
+function getWordBoundaries(text) {
+    const boundaries = [];
+    const regex = /\S+/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+        boundaries.push({ start: match.index, end: match.index + match[0].length, word: match[0] });
+    }
+    return boundaries;
+}
+
+function shuffleString(str) {
+    const arr = str.split('');
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr.join('');
+}
 
 // --- Core Test Logic ---
 const generateText = () => {
@@ -744,6 +911,7 @@ const generateText = () => {
         const quotes = { short: "To be or not to be.", medium: "The quick brown fox jumps over the lazy dog.", long: "Success is not final, failure is not fatal: it is the courage to continue that counts."};
         newText = quotes[value] || quotes.medium;
     }
+    wordBoundaries = getWordBoundaries(newText);
     return newText;
 };
 
@@ -773,6 +941,7 @@ const resetTest = () => {
     isTestComplete = false;
     originalText = '';
     typedText = '';
+    wordBoundaries = [];
     startTime = null;
     lastTypedTime = null;
     statTimer = null;
@@ -785,8 +954,6 @@ const resetTest = () => {
 
     logo.classList.remove('hidden');
     textDisplayContainer.style.opacity = '1';
-    // Clear previous text, keeping the caret
-    textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
     
     statsContainer.classList.add('hidden');
     inTestStats.classList.add('hidden');
@@ -794,19 +961,23 @@ const resetTest = () => {
     restartBtn.classList.remove('visible');
     
     const caret = D('caret');
-    caret.style.animation = 'blink 1s infinite'; // Re-enables the CSS animation
-    caret.style.opacity = '1'; // Ensure it's visible at start
+    if (caret) {
+        caret.style.animation = 'blink 1s infinite';
+        caret.style.opacity = '1';
+    }
+
 
     liveWPMDisplay.textContent = '';
     liveAccDisplay.textContent = '';
     textContentWrapper.style.transform = 'translate(0, 0)';
+    renderText(); 
     updateTextAndCaret();
 };
 
 const completeTest = () => {
     if (statTimer) clearInterval(statTimer);
     clearTimeout(inactivityTimer);
-    updateStats(true); // Final update
+    updateStats(true); 
     isTestActive = false;
     isTestComplete = true;
 
@@ -819,65 +990,186 @@ const completeTest = () => {
     textDisplayContainer.style.opacity = '0.5';
 
     const caret = D('caret');
-    caret.style.animation = 'none'; // Stop blinking
-    caret.style.opacity = '1';      // Ensure it's visible
+    if (caret) {
+        caret.style.animation = 'none';
+        caret.style.opacity = '1';
+    }
 
     setTimeout(() => restartBtn.focus(), 100);
 };
 
 // --- Rendering & UI Updates ---
 const renderText = () => {
-    // A safer way to clear previous characters while keeping the caret element
-    textContentWrapper.querySelectorAll('.char').forEach(c => c.remove());
+    const currentIndex = typedText.length;
+    const effect = settings.specialEffect;
+    const words = originalText.split(' ');
+    let charCounter = 0;
+    let currentWordIndex = -1;
 
-    const fragment = document.createDocumentFragment();
-    originalText.split('').forEach((char, index) => {
-        const charEl = document.createElement('span');
-        charEl.className = 'char';
-        charEl.textContent = char;
-        if (index < typedText.length) {
-            charEl.classList.add(char === typedText[index] ? 'correct' : 'incorrect');
+    // Determine the index of the word the user is currently typing
+    for (let i = 0; i < words.length; i++) {
+        // The "area" for a word extends to the space after it.
+        const wordWithSpaceLength = words[i].length + 1;
+        if (currentIndex < charCounter + wordWithSpaceLength) {
+            currentWordIndex = i;
+            break;
         }
-        fragment.appendChild(charEl);
+        charCounter += wordWithSpaceLength;
+    }
+    // If caret is at the very end, it's on the last word
+    if (currentWordIndex === -1 && currentIndex >= originalText.length) {
+        currentWordIndex = words.length - 1;
+    }
+
+    // --- DOM Generation ---
+    textContentWrapper.innerHTML = '';
+    const fragment = document.createDocumentFragment();
+    words.forEach((word, wordIndex) => {
+        const wordWrapper = document.createElement('span');
+        wordWrapper.className = 'word-wrapper';
+
+        // Add characters of the word
+        word.split('').forEach(char => {
+            const charEl = document.createElement('span');
+            charEl.className = 'char';
+            charEl.textContent = char;
+            wordWrapper.appendChild(charEl);
+        });
+
+        // Add space after the word
+        if (wordIndex < words.length - 1) {
+            const spaceEl = document.createElement('span');
+            spaceEl.className = 'char';
+            spaceEl.innerHTML = '&nbsp;';
+            wordWrapper.appendChild(spaceEl);
+        }
+
+        fragment.appendChild(wordWrapper);
     });
     textContentWrapper.appendChild(fragment);
+
+    // --- Apply Effects ---
+    const allWordWrappers = textContentWrapper.querySelectorAll('.word-wrapper');
+
+    // Word-level effects (visibility)
+    if (effect === 'focused' || effect === 'blind') {
+        allWordWrappers.forEach((wrapper, wordIndex) => {
+            let isVisible = true;
+            if (effect === 'focused') {
+                if (currentWordIndex > -1 && wordIndex !== currentWordIndex) {
+                    isVisible = false;
+                }
+            } else if (effect === 'blind') {
+                // show current, prev, and next
+                if (currentWordIndex > -1 && Math.abs(wordIndex - currentWordIndex) > 1) {
+                    isVisible = false;
+                }
+            }
+
+            if (!isVisible) {
+                wrapper.classList.add('fx-hidden');
+            }
+        });
+    }
+
+    // Character-level effects (coloring, etc.)
+    const allChars = textContentWrapper.querySelectorAll('.char');
+    allChars.forEach((charEl, index) => {
+        // Color typed characters
+        if (index < currentIndex) {
+            charEl.classList.add(originalText[index] === typedText[index] ? 'correct' : 'incorrect');
+        }
+
+        // Handle other effects
+        if (effect === 'ghost') {
+            if (charEl.classList.contains('correct') && (currentIndex - index) > 3) {
+                charEl.classList.add('ghost-fade');
+            }
+        }
+
+        if (effect === 'dyslexic') {
+             // Find which word this char belongs to by index
+            let dyslexicWordIndex = -1;
+            let count = 0;
+            for (let i = 0; i < words.length; i++) {
+                count += words[i].length + 1;
+                if (index < count) {
+                    dyslexicWordIndex = i;
+                    break;
+                }
+            }
+
+            if (dyslexicWordIndex > currentWordIndex + 2) {
+                const wrapper = allWordWrappers[dyslexicWordIndex];
+                // Shuffle the word only once
+                if (!wrapper.dataset.shuffled) {
+                    const originalWordText = words[dyslexicWordIndex];
+                    const shuffledWordText = shuffleString(originalWordText);
+                    const charsInWrapper = wrapper.querySelectorAll('.char');
+
+                    charsInWrapper.forEach((c, i) => {
+                        if (i < shuffledWordText.length) {
+                            c.textContent = shuffledWordText[i];
+                        }
+                    });
+                    wrapper.dataset.shuffled = 'true';
+                }
+            }
+        }
+    });
+
     updateTextAndCaret();
 };
 
+
 const updateTextAndCaret = () => {
     const caret = D('caret');
-    if (!caret) return; // Guard against null caret
+    if (!caret) return;
     
-    // Apply caret style classes
-    caret.className = 'caret'; // Reset classes first
-    caret.classList.add(settings.caretStyle);
-    if (settings.smoothCaret) caret.classList.add('smooth');
+    const effect = settings.specialEffect;
+    let transitionSpeed = (settings.smoothCaret) ? '0.1s' : '0s';
 
-
-    textContentWrapper.className = 'text-content-wrapper';
-    if (settings.textDisplayMode === 'static') {
-        textContentWrapper.classList.add('static');
-    } else {
-        textContentWrapper.classList.add('scroll');
+    if (effect === 'lazy') transitionSpeed = '0.5s';
+    if (effect === 'jumpy') transitionSpeed = '0s';
+    
+    document.documentElement.style.setProperty('--caret-transition-speed', transitionSpeed);
+    
+    const contentWrapperClass = `text-content-wrapper ${settings.textDisplayMode === 'scroll' ? 'scroll' : ''}`;
+    if (textContentWrapper.className !== contentWrapperClass) {
+        textContentWrapper.className = contentWrapperClass;
     }
     
+    // FIX: Use querySelectorAll to get all characters from within word wrappers.
     const allChars = textContentWrapper.querySelectorAll('.char');
-    let targetChar = allChars[typedText.length];
+    let targetIndex = typedText.length;
 
-    // --- Caret Positioning ---
-    if (typedText.length >= originalText.length && allChars.length > 0) {
+    if(isTestActive) {
+        if(effect === 'jumpy') {
+            targetIndex = Math.min(typedText.length + 1, originalText.length -1);
+        } else if(effect === 'lazy') {
+            targetIndex = Math.max(0, typedText.length - 1);
+        } else if(effect === 'random') {
+             targetIndex = Math.random() > 0.5 
+                ? Math.min(typedText.length + 1, originalText.length - 1)
+                : Math.max(0, typedText.length - 1);
+        }
+    }
+
+    let targetChar = allChars[targetIndex];
+     
+    if (typedText.length >= originalText.length) {
         targetChar = allChars[originalText.length - 1];
-        if (targetChar) { 
+         if (targetChar) { 
             caret.style.left = `${targetChar.offsetLeft + targetChar.offsetWidth}px`;
             caret.style.top = `${targetChar.offsetTop}px`;
         }
     } else if (targetChar) {
         caret.style.left = `${targetChar.offsetLeft}px`;
         caret.style.top = `${targetChar.offsetTop}px`;
-    } else if (allChars.length > 0) { // Position at the start if no text typed
+    } else if (allChars.length > 0) {
         caret.style.left = `${allChars[0].offsetLeft}px`;
         caret.style.top = `${allChars[0].offsetTop}px`;
-    } else { // Fallback for empty text
+    } else {
         caret.style.left = '0px';
         caret.style.top = '0px';
     }
@@ -885,43 +1177,34 @@ const updateTextAndCaret = () => {
     const charHeight = targetChar ? targetChar.offsetHeight : (parseFloat(getComputedStyle(textDisplayContainer).fontSize) * 1.2);
     caret.style.height = `${charHeight}px`;
 
-    if (settings.caretStyle === 'underline') {
+    const currentCaretStyle = settings.caretStyle;
+
+    if (currentCaretStyle === 'underline') {
         caret.style.top = `${parseFloat(caret.style.top) + charHeight - 3}px`;
         caret.style.height = `3px`;
+        caret.style.width = targetChar ? `${targetChar.offsetWidth}px` : `1ch`;
+    } else if (currentCaretStyle === 'block') {
+         caret.style.width = targetChar ? `${targetChar.offsetWidth}px` : `1ch`;
+    } else {
+        caret.style.width = '2px';
     }
-    caret.style.width = (settings.caretStyle === 'block' && targetChar) ? `${targetChar.offsetWidth}px` : (settings.caretStyle === 'line' ? '2px' : '');
 
-
-    // --- Text Scrolling ---
-    if (!targetChar && allChars.length === 0) {
-        textContentWrapper.style.transform = 'translate(0px, 0px)';
-        return;
-    }
-    
     if (settings.textDisplayMode === 'static') {
-        if (!targetChar) { 
-             targetChar = allChars[0];
-        }
-        if (!targetChar) return;
+        const activeCharForScroll = allChars[typedText.length] || allChars[allChars.length-1];
+        if (!activeCharForScroll) return;
 
         const containerHeight = textDisplayContainer.clientHeight;
-        const currentLineOffset = targetChar.offsetTop;
-        const lineHeight = targetChar.offsetHeight;
-
+        const currentLineOffset = activeCharForScroll.offsetTop;
+        const lineHeight = activeCharForScroll.offsetHeight;
         const scrollY = currentLineOffset - (containerHeight / 2) + (lineHeight / 2);
-
         const maxScroll = textContentWrapper.scrollHeight - containerHeight;
         const clampedScrollY = Math.max(0, Math.min(scrollY, maxScroll));
-
         textContentWrapper.style.transform = `translateY(-${clampedScrollY}px)`;
-
-    } else { // Handles 'scroll' mode
-        // Horizontal scroll logic
+    } else {
         const containerCenter = textDisplayContainer.clientWidth / 2;
         const caretLeft = parseFloat(caret.style.left) || 0;
         const caretWidth = caret.offsetWidth;
         const caretCenter = caretLeft + (caretWidth / 2);
-
         let targetX = containerCenter - caretCenter;
         textContentWrapper.style.transform = `translateX(${targetX}px)`;
     }
@@ -934,7 +1217,6 @@ const updateStats = (isFinal = false) => {
     const minutes = elapsed / 60;
     
     const correctChars = typedText.split('').filter((c, i) => c === originalText[i]).length;
-    // Prevent division by zero if test is very short
     const wpm = minutes > 0.005 ? Math.round((correctChars / 5) / minutes) : 0;
     
     const accuracy = totalCharsTyped > 0 ? Math.round(((totalCharsTyped - totalErrors) / totalCharsTyped) * 100) : 100;
@@ -998,6 +1280,7 @@ const pressKey = (keyCode) => {
         setTimeout(() => keyElement.classList.remove('pressed'), 100);
     }
 };
+
 
 // --- Event Handlers ---
 const handleKeyPress = (e) => {
@@ -1111,10 +1394,20 @@ const handleKeyPress = (e) => {
 // --- Settings Logic ---
 const applySettings = () => {
     document.body.dataset.theme = settings.theme;
+    
+    // Manage special effect classes on body
+    document.body.className = document.body.className.replace(/\bfx-\S+/g, '');
+    if (settings.specialEffect !== 'none') {
+        document.body.classList.add('fx-' + settings.specialEffect);
+    }
+
     document.documentElement.style.setProperty('--accent-color', settings.accent);
     document.documentElement.style.setProperty('--main-font', settings.font);
     document.documentElement.style.setProperty('--key-unit-width', `${settings.keyboardSize}rem`);
     
+    // Trigger a re-render to apply theme-specific gimmicks
+    renderText(); 
+
     keyboardContainer.classList.toggle('hidden', settings.keyboard === 'hidden');
     if (settings.keyboard !== 'hidden') {
         renderKeyboard(settings.keyboard);
@@ -1138,6 +1431,7 @@ const loadSettings = () => {
     }
     themeSelect.value = settings.theme;
     accentColorPicker.value = settings.accent;
+    specialEffectSelect.value = settings.specialEffect;
     fontTypeSelect.value = settings.font;
     caretStyleSelect.value = settings.caretStyle;
     textDisplayModeSelect.value = settings.textDisplayMode;
@@ -1249,6 +1543,7 @@ document.addEventListener('DOMContentLoaded', () => {
     themeSelect.addEventListener('change', e => { settings.theme = e.target.value; applySettings(); saveSettings(); });
     accentColorPicker.addEventListener('input', e => { settings.accent = e.target.value; document.documentElement.style.setProperty('--accent-color', settings.accent); });
     accentColorPicker.addEventListener('change', () => { saveSettings(); });
+    specialEffectSelect.addEventListener('change', e => { settings.specialEffect = e.target.value; applySettings(); saveSettings(); startTest()});
     fontTypeSelect.addEventListener('change', e => { settings.font = e.target.value; applySettings(); saveSettings(); });
     caretStyleSelect.addEventListener('change', e => { settings.caretStyle = e.target.value; applySettings(); saveSettings(); });
     textDisplayModeSelect.addEventListener('change', e => { settings.textDisplayMode = e.target.value; applySettings(); saveSettings();});
