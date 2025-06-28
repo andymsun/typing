@@ -194,7 +194,13 @@ export function updateTextAndCaret(originalText, typedText, settings) {
         const currentLineOffset = targetChar.offsetTop;
         const lineHeight = targetChar.offsetHeight;
         const scrollY = currentLineOffset - (containerHeight / 2) + (lineHeight / 2);
-        textContentWrapper.style.transform = `translateY(-${Math.max(0, scrollY)}px)`;
+        
+        // BUG FIX: Clamp the scroll value to prevent it from going beyond the content's bounds.
+        const maxScroll = textContentWrapper.scrollHeight - containerHeight;
+        const clampedScrollY = Math.max(0, Math.min(scrollY, maxScroll));
+        
+        textContentWrapper.style.transform = `translateY(-${clampedScrollY}px)`;
+
     } else if (settings.textDisplayMode === 'scroll') {
         const containerCenter = textDisplayContainer.clientWidth / 2;
         const caretLeft = parseFloat(caret.style.left) || 0;
