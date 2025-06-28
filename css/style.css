@@ -1,0 +1,415 @@
+/* --- Design Philosophy ---
+ * Minimalist & Focused: Clean lines, generous spacing, and a focus on the core typing experience.
+ * Customizable: Users can tailor the look and feel with themes, caret styles, and more.
+ * Polished & Modern: Smooth transitions and a refined color palette create a premium feel.
+ */
+:root {
+    /* Default Theme (Dark) Variables */
+    --bg-primary: #111827;     /* Gray 900 */
+    --bg-secondary: #1f2937;   /* Gray 800 */
+    --bg-tertiary: #374151;     /* Gray 700 */
+    --text-primary: #f3f4f6;   /* Gray 100 */
+    --text-secondary: #9ca3af; /* Gray 400 */
+    --text-muted: #4b5563;     /* Gray 600 */
+    --accent-color: #BEB05B;     /* Default Gold/Yellow Accent */
+    --border-color: #374151;   /* Gray 700 */
+    --correct-color: var(--accent-color);
+    --incorrect-color: #f87171; /* Red 400 */
+
+    /* Global Style Variables */
+    --main-font: 'Roboto Mono', monospace;
+    --ui-font: 'Inter', sans-serif;
+    --key-unit-width: 2.25rem; /* New smaller default size */
+    --caret-transition-speed: 0.1s;
+}
+
+/* --- Special Effects CSS --- */
+.char.ghost-fade {
+    opacity: 0.15;
+    transition: opacity 1.5s ease-out;
+}
+
+.fx-redacted .char.incorrect {
+    background-color: var(--text-primary);
+    color: var(--text-primary);
+    border-radius: 0;
+    text-shadow: none;
+}
+
+.word-wrapper {
+    display: inline-block; /* FIX: Prevents words from breaking apart */
+}
+
+.word-wrapper.fx-hidden, .char.fx-hidden {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- Base & Layout --- */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    height: 100%;
+    width: 100%;
+    overflow: hidden;
+}
+
+body {
+    font-family: var(--ui-font);
+    background-color: var(--bg-primary);
+    color: var(--text-primary);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.3s ease;
+}
+
+.container {
+    width: 100%;
+    height: 100%;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem; /* Reduced gap for more compact layout */
+    position: relative;
+    z-index: 1;
+}
+
+/* --- HEADER / SETTINGS --- */
+.header {
+    position: absolute;
+    top: 1rem; /* Closer to top */
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 20;
+}
+
+.logo {
+    font-weight: 600;
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    transition: opacity 0.3s ease-in-out;
+}
+
+.logo.hidden {
+    opacity: 0;
+}
+
+.settings-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.25rem;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.settings-btn:hover {
+    color: var(--accent-color);
+    background-color: var(--bg-secondary);
+    transform: scale(1.1);
+}
+
+.settings-btn svg { width: 24px; height: 24px; fill: currentColor; transition: transform 0.4s ease; }
+.settings-btn.open svg { transform: rotate(30deg); }
+
+.settings-panel {
+    display: none;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    width: 280px; /* Slightly narrower for mobile */
+    z-index: 10;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+
+.setting { display: flex; justify-content: space-between; align-items: center; }
+.setting label { color: var(--text-secondary); font-size: 0.9rem; font-weight: 500;}
+
+.setting select, .setting input[type="color"] {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    width: 140px;
+    font-family: var(--ui-font);
+}
+
+#resetKeyboardSizeBtn {
+    background:none; 
+    border: 1px solid var(--border-color); 
+    color: var(--text-secondary); 
+    border-radius: 4px; 
+    padding: 2px 6px; 
+    cursor: pointer; 
+    font-size: 0.7rem;
+    transition: all 0.2s ease;
+}
+#resetKeyboardSizeBtn:hover {
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+
+/* Toggle Switch */
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+}
+.toggle-switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: var(--bg-tertiary);
+    transition: .3s;
+    border-radius: 24px;
+}
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 16px; width: 16px;
+    left: 4px; bottom: 4px;
+    background-color: var(--text-primary);
+    transition: .3s;
+    border-radius: 50%;
+}
+input:checked + .slider { background-color: var(--accent-color); }
+input:checked + .slider:before { transform: translateX(16px); }
+
+/* --- MAIN CONTENT --- */
+.main-content-wrapper {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 900px;
+    gap: 1.5rem;
+    margin-top: 0; /* Removed negative margin */
+}
+
+/* --- Stats (Results) --- */
+.stats {
+    display: flex; gap: 2rem; /* Reduced gap */
+    flex-wrap: wrap; /* Allow stats to wrap */
+    justify-content: center;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(20px);
+    min-height: 60px; /* Use min-height to allow wrapping */
+}
+.stats.hidden { opacity: 0; visibility: hidden; transform: translateY(0px); }
+
+.stat { text-align: center; }
+.stat-value { font-size: 2rem; font-weight: 600; color: var(--accent-color); }
+.stat-label { font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
+
+/* --- Mode Controls --- */
+.test-mode-controls {
+    display: flex; align-items: center; flex-wrap: wrap; justify-content: center;
+    background-color: var(--bg-secondary);
+    padding: 0.5rem; border-radius: 8px; gap: 0.5rem;
+    transition: all 0.3s ease;
+}
+.test-mode-controls.hidden { opacity: 0; visibility: hidden; transform: scale(0.95); }
+.mode-group { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; justify-content: center; }
+
+.mode-divider {
+    width: 1px;
+    height: 24px;
+    background-color: var(--border-color);
+    margin: 0 0.5rem;
+}
+
+.mode-btn {
+    background: none; color: var(--text-secondary); border: none;
+    padding: 0.5rem 1rem; border-radius: 6px; font-size: 0.9rem;
+    cursor: pointer; transition: all 0.2s ease;
+    display: flex; align-items: center; gap: 0.5rem;
+    font-family: var(--ui-font); font-weight: 500;
+}
+.mode-btn:hover { color: var(--text-primary); background-color: var(--bg-tertiary); }
+.mode-btn.active { color: var(--bg-primary); background-color: var(--accent-color); }
+.mode-btn.active:hover { background-color: var(--accent-color); filter: brightness(1.1); }
+.mode-btn svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* --- TYPING AREA --- */
+.typing-area {
+    display: flex; flex-direction: column; justify-content: center;
+    align-items: center; gap: 1rem; width: 100%;
+}
+
+/* In-Test Stats (live stats) */
+.in-test-stats {
+    display: flex; gap: 2rem;
+    color: var(--text-secondary);
+    font-family: var(--main-font);
+    font-size: 1.1rem;
+    height: 24px; transition: opacity 0.3s ease;
+}
+.in-test-stats.hidden { opacity: 0; }
+.live-stat-wpm { color: var(--accent-color); font-weight: 500; }
+.live-stat-acc { font-weight: 500; }
+
+/* --- Text Display & Caret --- */
+.text-display {
+    width: 100%; font-size: 1.8rem; line-height: 2;
+    font-family: var(--main-font); overflow: hidden;
+    height: 180px;
+    position: relative;
+    cursor: text;
+    transition: opacity 0.3s ease;
+}
+
+.text-content-wrapper { 
+    position: relative;
+    transition: transform 0.2s ease-out; 
+    width: 100%;
+    white-space: normal;
+}
+.text-content-wrapper.scroll { 
+    white-space: nowrap; 
+}
+
+.char {
+    display: inline-block; /* Fix for wrapping and caret positioning */
+    position: relative;
+    transition: color 0.2s ease, opacity 0.2s ease, filter 0.2s ease;
+    color: var(--text-muted); /* Untyped text is muted */
+}
+.char.correct { color: var(--text-primary); }
+.char.incorrect { color: var(--incorrect-color); background-color: rgba(248, 113, 113, 0.1); border-radius: 4px; }
+
+#caret {
+    position: absolute;
+    transition: left var(--caret-transition-speed) ease, top var(--caret-transition-speed) ease, transform 0.1s ease-out;
+    border-radius: 2px;
+    opacity: 0;
+    animation: blink 1s infinite;
+}
+#caret.line { width: 2px; background-color: var(--accent-color); }
+#caret.block { background-color: var(--accent-color); opacity: 0.3 !important; animation: none; }
+#caret.underline { height: 3px; background-color: var(--accent-color); }
+
+@keyframes blink { 50% { opacity: 1; } }
+
+/* --- Restart Button --- */
+.restart-btn {
+    background: transparent; border: none; color: var(--text-secondary);
+    font-size: 1.5rem; cursor: pointer; transition: all 0.3s ease;
+    margin-top: 1rem; opacity: 0; visibility: hidden;
+    transform: scale(0.9); display: flex; align-items: center; justify-content: center;
+    width: 50px;
+    height: 0; 
+    border-radius: 50%;
+}
+.restart-btn.visible { 
+    opacity: 1; 
+    visibility: visible; 
+    height: 50px;
+    transform: scale(1); 
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 var(--accent-color); }
+    100% { box-shadow: 0 0 0 15px transparent; }
+}
+
+.restart-btn:hover, .restart-btn:focus {
+    color: var(--accent-color);
+    transform: scale(1.1) rotate(15deg);
+    outline: none;
+    animation: pulse 1.5s infinite;
+}
+.restart-btn svg { width: 32px; height: 32px; fill: currentColor; }
+
+/* --- FOOTER / KEYBOARD --- */
+.keyboard {
+    width: 100%; max-width: 900px; padding: 1rem 0;
+    transition: opacity 0.3s ease, visibility 0.3s ease, height 0.3s ease;
+}
+.keyboard.hidden { opacity: 0; visibility: hidden; height: 0; padding: 0; margin: 0; overflow: hidden; }
+.keyboard-row { display: flex; justify-content: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.key-gap {
+     width: calc(var(--key-unit-width) * 2);
+     flex-shrink: 0;
+}
+.key {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-bottom-width: 3px;
+    border-radius: 6px;
+    height: calc(var(--key-unit-width) * 1.1);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem; color: var(--text-secondary);
+    transition: all 0.1s ease; cursor: default;
+    font-family: var(--main-font); flex-shrink: 0;
+}
+.key.pressed {
+    background: var(--accent-color); color: var(--bg-primary);
+    border-color: var(--accent-color);
+    transform: translateY(2px);
+    border-bottom-width: 1px;
+}
+.key .special-text { font-size: 0.65rem; }
+.u-100 { width: var(--key-unit-width); }
+.u-125 { width: calc(var(--key-unit-width) * 1.25); }
+.u-150 { width: calc(var(--key-unit-width) * 1.5); }
+.u-175 { width: calc(var(--key-unit-width) * 1.75); }
+.u-200 { width: calc(var(--key-unit-width) * 2.0); }
+.u-225 { width: calc(var(--key-unit-width) * 2.25); }
+.u-275 { width: calc(var(--key-unit-width) * 2.75); }
+.u-625 { width: calc(var(--key-unit-width) * 6.25); }
+
+/* --- Responsive Design --- */
+@media (max-width: 900px) {
+    .text-display { font-size: 1.6rem; }
+}
+
+@media (max-width: 768px) {
+    .container { padding: 1rem; }
+    .header { top: 1rem; left: 1rem; right: 1rem; }
+    :root { --key-unit-width: 1.8rem; }
+    .keyboard { display: none; } /* Hide keyboard on smaller screens */
+
+    /* MODIFIED: Stack controls vertically for tablets and phones */
+    .test-mode-controls {
+        flex-direction: column;
+        align-items: stretch; /* Make groups take full width */
+        gap: 1rem;
+    }
+    .mode-divider {
+        display: none; /* Hide vertical divider */
+    }
+     .mode-btn {
+         padding: 0.8rem 1rem;   /* Better tap size */
+         font-size: 1rem;         /* More readable */
+         min-height: 44px;        /* Ensure minimum tap target height */
+     }
+}
+
+@media (max-width: 480px) {
+    .text-display { font-size: 1.4rem; line-height: 1.8; height: 120px; }
+    .test-mode-controls { font-size: 0.8rem; }
+    .stats { gap: 1rem; padding: 1rem 1.5rem; }
+    .stat-value { font-size: 1.5rem; }
+}

@@ -1,0 +1,185 @@
+/* --- Theme Definitions ---
+ * This file contains all the color schemes for the application.
+ * A new theme can be added by creating a new body[data-theme="..."] selector
+ * and defining the required CSS variables.
+ */
+
+body[data-theme="light"] {
+    --bg-primary: #eff1f5;
+    --bg-secondary: #e6e9ef;
+    --bg-tertiary: #dce0e8;
+    --text-primary: #4c4f69;
+    --text-secondary: #6c6f85;
+    --text-muted: #9ca0b0;
+    --accent-color: #1e66f5; /* Blue */
+    --border-color: #ccd0da;
+    --incorrect-color: #d20f39; /* Red */
+}
+
+body[data-theme="ocean"] {
+    --bg-primary: #0b1e3a;
+    --bg-secondary: #132d57;
+    --bg-tertiary: #1f4287;
+    --text-primary: #eff1f5;
+    --text-secondary: #a6b1e1;
+    --text-muted: #5269a3;
+    --accent-color: #89e0ff;
+    --border-color: #1f4287;
+    --incorrect-color: #ff6b6b;
+}
+
+body[data-theme="matrix"] {
+    --bg-primary: #000000;
+    --bg-secondary: #0D0D0D;
+    --bg-tertiary: #1A1A1A;
+    --text-primary: #00FF41;
+    --text-secondary: #00b32d;
+    --text-muted: #006419;
+    --accent-color: #00FF41;
+    --border-color: #1A1A1A;
+    --incorrect-color: #FF0000;
+}
+
+body[data-theme="dracula"] {
+    --bg-primary: #282a36;
+    --bg-secondary: #44475a;
+    --bg-tertiary: #6272a4;
+    --text-primary: #f8f8f2;
+    --text-secondary: #bd93f9;
+    --text-muted: #6272a4;
+    --accent-color: #ff79c6;
+    --border-color: #44475a;
+    --incorrect-color: #ff5555;
+}
+
+body[data-theme="sunset"] {
+    --bg-primary: #2a273f;
+    --bg-secondary: #4f3a65;
+    --bg-tertiary: #754f7d;
+    --text-primary: #f8f8f2;
+    --text-secondary: #e0d2f7;
+    --text-muted: #9d8df1;
+    --accent-color: #ff8b94;
+    --border-color: #4f3a65;
+    --incorrect-color: #ff5555;
+}
+
+body[data-theme="forest"] {
+    --bg-primary: #2a3d34;
+    --bg-secondary: #3e5246;
+    --bg-tertiary: #5f7464;
+    --text-primary: #e0e0e0;
+    --text-secondary: #c0c0c0;
+    --text-muted: #8a9e91;
+    --accent-color: #aacc88;
+    --border-color: #3e5246;
+    --incorrect-color: #e87d7d;
+}
+
+body[data-theme="deepwoken"] {
+    --bg-primary: #1a1d1a;
+    --bg-secondary: #292e29;
+    --bg-tertiary: #3a3f3a;
+    --text-primary: #e0e0e0;
+    --text-secondary: #a0a0a0;
+    --text-muted: #6b706b;
+    --accent-color: #e0e0e0;
+    --border-color: #292e29;
+    --incorrect-color: #b33a3a;
+}
+
+body[data-theme="crimson"] {
+    --bg-primary: #1a0000;
+    --bg-secondary: #2e0c0c;
+    --bg-tertiary: #4d1a1a;
+    --text-primary: #ffcdd2;
+    --text-secondary: #e57373;
+    --text-muted: #8e2424;
+    --accent-color: #ef9a9a;
+    --border-color: #4d1a1a;
+    --incorrect-color: #fbc02d; /* Yellow for contrast */
+}
+
+body[data-theme="monkey-types"] {
+    --bg-primary: #212121;
+    --bg-secondary: #313131;
+    --bg-tertiary: #424242;
+    --text-primary: #fffde7;
+    --text-secondary: #ffee58;
+    --text-muted: #7d721a;
+    --accent-color: #fdd835;
+    --border-color: #424242;
+    --incorrect-color: #ec407a;
+}
+
+body[data-theme="retro-light"] {
+    --bg-primary: #dfd8c8;
+    --bg-secondary: #d1c7b8;
+    --bg-tertiary: #bbaF9f;
+    --text-primary: #3e2723;
+    --text-secondary: #5d4037;
+    --text-muted: #8d6e63;
+    --accent-color: #ff6f00;
+    --border-color: #bbaF9f;
+    --incorrect-color: #d84315;
+}
+
+body[data-theme="retro-dark"] {
+    --bg-primary: #1e2a2a;
+    --bg-secondary: #2a3a3a;
+    --bg-tertiary: #3a504b;
+    --text-primary: #e0e0e0;
+    --text-secondary: #f2a669;
+    --text-muted: #8c7e6a;
+    --accent-color: #e88358;
+    --border-color: #3a504b;
+    --incorrect-color: #c94f4f;
+}
+
+body[data-theme="mocha"] {
+    --bg-primary: #3c2f2f;
+    --bg-secondary: #4a3c3c;
+    --bg-tertiary: #6b5a5a;
+    --text-primary: #f5e3e0;
+    --text-secondary: #d1b7b0;
+    --text-muted: #8a7b78;
+    --accent-color: #a38f83;
+    --border-color: #6b5a5a;
+    --incorrect-color: #d48484;
+}
+
+body[data-theme="espresso"] {
+    --bg-primary: #2a1d15;
+    --bg-secondary: #3a2d25;
+    --bg-tertiary: #4a3d35;
+    --text-primary: #f5e6d3;
+    --text-secondary: #d3bda6;
+    --text-muted: #7a6d55;
+    --accent-color: #a47c48;
+    --border-color: #4a3d35;
+    --incorrect-color: #d86262;
+}
+
+body[data-theme="latte"] {
+    --bg-primary: #e8d9c4;
+    --bg-secondary: #d9c8b4;
+    --bg-tertiary: #c0ae98;
+    --text-primary: #4b3832;
+    --text-secondary: #6e584d;
+    --text-muted: #a4907c;
+    --accent-color: #855b3b;
+    --border-color: #c0ae98;
+    --incorrect-color: #c04c4c;
+}
+
+body[data-theme="cold-brew"] {
+    --bg-primary: #1e1511;
+    --bg-secondary: #2a201c;
+    --bg-tertiary: #3a302c;
+    --text-primary: #dcdcdc;
+    --text-secondary: #a0a0a0;
+    --text-muted: #6b6b6b;
+    --accent-color: #7ab4e8;
+    --border-color: #3a302c;
+    --incorrect-color: #e87d7d;
+}
