@@ -187,13 +187,13 @@ body[data-theme="cold-brew"] {
 /* add vscode github colorway theme */
 
 body[data-theme="vscode-github-dark"] {
-    --bg-primary: #24292e;
-    --bg-secondary: #1f2428;
-    --bg-tertiary: #2b3036;
-    --text-primary: #284d68;
-    --text-secondary: #4f5458;
-    --text-muted: #4d7049;
-    --accent-color: #336c96;
-    --border-color: #173a53;
-    --incorrect-color: #c56b2f;
+    --bg-primary: #00111d;
+    --bg-secondary: #002233;
+    --bg-tertiary: #044260;
+    --text-primary: #dcdcdc;
+    --text-secondary: #a0a0a0;
+    --text-muted: #6b6b6b;
+    --accent-color: #7ab4e8;
+    --border-color: #002233;
+    --incorrect-color: #e87d7d;
 }
