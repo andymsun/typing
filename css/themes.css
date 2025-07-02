@@ -194,6 +194,6 @@ body[data-theme="vscode-github-dark"] {
     --text-secondary: #5887bc;
     --text-muted: #6a737d;
     --accent-color: #336c96;
-    --border-color: #336c96;
-    --incorrect-color: #c04c4c;
+    --border-color: #173a53;
+    --incorrect-color: #c56b2f;
 }
